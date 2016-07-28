@@ -347,7 +347,7 @@ def main(argv):
     for index in range(int_start, len([p.lower() for p in photos_path])):
         photo_to_upload = photos_path[index].lower()
         local_count += 1
-        if ('jpg' in photo_to_upload or 'jpeg' in photo_to_upload) and "thumb" not in photo_to_upload and local_count > count:
+        if ('jpg' in photo_to_upload or 'jpeg' in photo_to_upload) and "thumb" not in photo_to_upload and local_count >= count:
             total_img = nr_photos_upload
             photo_name = os.path.basename(photo_to_upload)
             try:
@@ -375,10 +375,11 @@ def main(argv):
                                   }
                 info_to_upload = {'data': data_photo, 'photo': photo, 'name': photo_to_upload}
                 list_to_upload.append(info_to_upload)
-                count += 1
+                if count != local_count:  # Skip first time they become equal after resume
+                    count += 1
             except Exception as ex:
                 print(ex)
-        if (index % 300 == 0 and index != 0) and local_count > count:
+        if (index % 300 == 0 and index != 0) and local_count >= count:  # local_count > count was never true on new uploads
             count_uploaded = thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_img)
             list_to_upload = []
     if index % 300 != 0:
