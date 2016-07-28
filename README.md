@@ -14,7 +14,7 @@ The requirements can be install by running : pip install -r requirements.txt
     
 ## Usage:
 
-
+```
 python upload_photos.py -p /Users/example/Desktop/Photos/
 
 python upload_video.py -p /Users/example/Desktop/Videos/
@@ -22,7 +22,7 @@ python upload_video.py -p /Users/example/Desktop/Videos/
 python upload_photos.py -h for help
 
 python upload_video.py -h for help
-    
+```    
 ---------   
 # 2.Upload geotagged photos
 
@@ -36,6 +36,8 @@ Python 3 + dependencies from the requirements file.
 The requirements can be install by running :pip3 install -r requirements.txt
 
 ## Usage:
+```
 python upload_photos_by_exif.py -p /Users/example/Desktop/Photos/AllPhotos/
 
 python upload_photos_by_exif.py -h for help.
+```
