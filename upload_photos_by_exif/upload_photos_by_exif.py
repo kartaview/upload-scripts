@@ -138,9 +138,11 @@ def thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_i
                 count_uploaded += 1
                 with open(path + "count_file.txt", "w") as fis:
                     fis.write((str(count_uploaded)))
+                    fis.close()
             except Exception as exc:
                 print('%generated an exception: %s' % (exc))
     return count_uploaded
+
 
 def main(argv):
     try:
@@ -175,9 +177,9 @@ def main(argv):
                 print ("-Optional:")
                 print ("    -r   --run                 This upload pictures on: http://openstreetview.com/")
                 print (
-                "    -r   --run staging         This upload pictures on: http://staging.open-street-view.skobbler.net")
+                    "    -r   --run staging         This upload pictures on: http://staging.open-street-view.skobbler.net")
                 print (
-                "    -r   --run test            This upload pictures on: http://tst.open-street-view.skobbler.net/")
+                    "    -r   --run test            This upload pictures on: http://tst.open-street-view.skobbler.net/")
                 print ("Example: ")
                 print ("    python upload_photos_by_exif3.py -p /Users/example/Desktop/Photos/ ")
                 print ("    python upload_photos_by_exif3.py -p /Users/example/Desktop/Photos/ -t 2")
@@ -313,6 +315,7 @@ def main(argv):
     try:
         with open(path + "sequence_file.txt", "r+") as sequence_file:
             id_sequence = sequence_file.read()
+            sequence_file.close()
     except Exception as ex:
         with open(path + "sequence_file.txt", "w+") as sequence_file:
             h = requests.post(url_sequence, data=data_sequence)
@@ -341,13 +344,14 @@ def main(argv):
     print("Found " + str(nr_photos_upload) + " pictures to upload")
     local_count = 0
     list_to_upload = []
-    # TODO: Make a loop for 1000 photos
     int_start = 0
     count_uploaded = count
+
     for index in range(int_start, len([p.lower() for p in photos_path])):
         photo_to_upload = photos_path[index].lower()
         local_count += 1
-        if ('jpg' in photo_to_upload or 'jpeg' in photo_to_upload) and "thumb" not in photo_to_upload and local_count > count:
+        if ('jpg' in photo_to_upload or 'jpeg' in photo_to_upload) and \
+              "thumb" not in photo_to_upload and local_count >= count:
             total_img = nr_photos_upload
             photo_name = os.path.basename(photo_to_upload)
             try:
@@ -375,15 +379,15 @@ def main(argv):
                                   }
                 info_to_upload = {'data': data_photo, 'photo': photo, 'name': photo_to_upload}
                 list_to_upload.append(info_to_upload)
-                count += 1
+                if count != local_count:
+                    count += 1
             except Exception as ex:
                 print(ex)
-        if (index % 300 == 0 and index != 0) and local_count > count:
+        if (index % 100 == 0 and index != 0) and local_count >= count:
             count_uploaded = thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_img)
             list_to_upload = []
-    if index % 300 != 0:
+    if index % 100 != 0:
         count_uploaded = thread(max_workers, url_photo, list_to_upload, path, count_uploaded, nr_photos_upload)
-    # TODO: close files
 
     data_finish = {'externalUserId': user_id,
                    'userType': 'osm',  # harcode
