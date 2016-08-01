@@ -123,8 +123,8 @@ def thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_i
                 name = future.result()['name']
                 print("processing {}".format(name))
                 if data['status']['apiCode'] == "600":
-                    percentage = float((float(count_uploaded) * 100) / float(total_img))
-                    print(("Uploaded - " + str(count_uploaded) + ' of total :' + str(
+                    percentage = float((float(count_uploaded + 1) * 100) / float(total_img))
+                    print(("Uploaded - " + str(count_uploaded + 1) + ' of total :' + str(
                         total_img) + ", percentage: " + str(round(percentage, 2)) + "%"))
                 elif data['status']['apiCode'] == "610":
                     print("skipping - a requirement arguments is missing for upload")
@@ -292,8 +292,8 @@ def main(argv):
     os.chdir(path)
     photos_path = sorted(os.listdir(path), key=os.path.getmtime)
     os.chdir(old_dir)
-    for photo_path in [p.lower() for p in photos_path]:
-        if ('jpg' in photo_path or 'jpeg' in photo_path) and "thumb" not in photo_path:
+    for photo_path in [p for p in photos_path]:
+        if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
             try:
                 latitude, longitude, compas = get_gps_lat_long_compass(path + photo_path)
             except ValueError as e:
@@ -338,8 +338,8 @@ def main(argv):
     except:
         count = 0
     nr_photos_upload = 0
-    for photo_path in [p.lower() for p in photos_path]:
-        if ('jpg' in photo_path or 'jpeg' in photo_path) and "thumb" not in photo_path:
+    for photo_path in [p for p in photos_path]:
+        if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
             nr_photos_upload += 1
     print("Found " + str(nr_photos_upload) + " pictures to upload")
     local_count = 0
@@ -347,11 +347,11 @@ def main(argv):
     int_start = 0
     count_uploaded = count
 
-    for index in range(int_start, len([p.lower() for p in photos_path])):
-        photo_to_upload = photos_path[index].lower()
+    for index in range(int_start, len([p for p in photos_path])):
+        photo_to_upload = photos_path[index]
         local_count += 1
-        if ('jpg' in photo_to_upload or 'jpeg' in photo_to_upload) and \
-              "thumb" not in photo_to_upload and local_count >= count:
+        if ('jpg' in photo_to_upload.lower() or 'jpeg' in photo_to_upload.lower()) and \
+              "thumb" not in photo_to_upload.lower() and local_count >= count:
             total_img = nr_photos_upload
             photo_name = os.path.basename(photo_to_upload)
             try:
