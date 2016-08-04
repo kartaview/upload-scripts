@@ -55,7 +55,7 @@ def get_gps_lat_long_compass(path_image):
     try:
         info = image._getexif()
     except Exception as e:
-        print(e)
+        e
     if info:
         exif_data = {}
         for tag, value in list(info.items()):
@@ -195,8 +195,9 @@ def main(argv):
             elif opt in ("-r", "--run"):
                 run = arg
             elif opt in ("-t", "--thread"):
-                if int(arg) < 10 and int(arg) > 1:
+                if int(arg) < 10 and int(arg) > 0:
                     max_workers = int(arg)
+                    print("Threads: " + str(max_workers))
                 else:
                     max_workers = 4
                     print("Default threads: 4, maximum threads exceeded")
