@@ -13,6 +13,8 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 import concurrent.futures
 
+COUNT_TO_WRITE = 0
+
 
 def _get_if_exist(data, key):
     if key in data:
@@ -105,26 +107,31 @@ def get_gps_lat_long_compass(path_image):
         return lat, long, compas
 
 
-def upload_photos(url_photo, dict, timeout):
+def upload_photos(url_photo, dict, timeout, path):
     photo = dict['photo']
     data_photo = dict['data']
     name = dict['name']
     conn = requests.post(url_photo, data=data_photo, files=photo, timeout=timeout)
     photo['photo'][1].close()
+    with open(path + "count_file.txt", "w") as fis:
+        global COUNT_TO_WRITE
+        COUNT_TO_WRITE += 1
+        fis.write((str(COUNT_TO_WRITE)))
+        fis.close()
     return {'json': conn.json(), 'name': name}
 
 
 def thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_img):
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_url = {executor.submit(upload_photos, url_photo, dict, 100): dict for dict in list_to_upload}
+        future_to_url = {executor.submit(upload_photos, url_photo, dict, 1000, path): dict for dict in list_to_upload}
         for future in concurrent.futures.as_completed(future_to_url):
             try:
                 data = future.result()['json']
                 name = future.result()['name']
                 print("processing {}".format(name))
                 if data['status']['apiCode'] == "600":
-                    percentage = float((float(count_uploaded + 1) * 100) / float(total_img))
-                    print(("Uploaded - " + str(count_uploaded + 1) + ' of total :' + str(
+                    percentage = float((float(COUNT_TO_WRITE) * 100) / float(total_img))
+                    print(("Uploaded - " + str(COUNT_TO_WRITE) + ' of total :' + str(
                         total_img) + ", percentage: " + str(round(percentage, 2)) + "%"))
                 elif data['status']['apiCode'] == "610":
                     print("skipping - a requirement arguments is missing for upload")
@@ -135,12 +142,8 @@ def thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_i
                 else:
                     print (data['status'])
                     print("skipping - bad image")
-                count_uploaded += 1
-                with open(path + "count_file.txt", "w") as fis:
-                    fis.write((str(count_uploaded)))
-                    fis.close()
             except Exception as exc:
-                print('%generated an exception: %s' % (exc))
+                print ("Uploaded error")
     return count_uploaded
 
 
@@ -347,12 +350,13 @@ def main(argv):
     list_to_upload = []
     int_start = 0
     count_uploaded = count
-
+    global COUNT_TO_WRITE
+    COUNT_TO_WRITE = count
     for index in range(int_start, len([p for p in photos_path])):
         photo_to_upload = photos_path[index]
         local_count += 1
         if ('jpg' in photo_to_upload.lower() or 'jpeg' in photo_to_upload.lower()) and \
-              "thumb" not in photo_to_upload.lower() and local_count >= count:
+                        "thumb" not in photo_to_upload.lower() and local_count >= count:
             total_img = nr_photos_upload
             photo_name = os.path.basename(photo_to_upload)
             try:
