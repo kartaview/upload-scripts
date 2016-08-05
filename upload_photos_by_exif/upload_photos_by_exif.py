@@ -28,7 +28,7 @@ def _convert_to_degress(value):
     m = float(value.values[1].num) / float(value.values[1].den)
     s = float(value.values[2].num) / float(value.values[2].den)
 
-    return round(d + (m / 60.0) + (s / 3600.0), 4)
+    return (d + (m / 60.0) + (s / 3600.0), )
 
 
 def get_exif_location(exif_data):
@@ -84,11 +84,11 @@ def get_gps_lat_long_compass(path_image):
 
         try:
             if lat and int:
-                lat = round(float(lat[0][0]) / float(lat[0][1]) + float(lat[1][0]) / float(lat[1][1]) / 60.0 + float(
-                    lat[2][0]) / float(lat[2][1]) / 3600.0, 4)
-                long = round(
+                lat = (float(lat[0][0]) / float(lat[0][1]) + float(lat[1][0]) / float(lat[1][1]) / 60.0 + float(
+                    lat[2][0]) / float(lat[2][1]) / 3600.0)
+                long = (
                     float(long[0][0]) / float(long[0][1]) + float(long[1][0]) / float(long[1][1]) / 60.0 + float(
-                        long[2][0]) / float(long[2][1]) / 3600.0, 4)
+                        long[2][0]) / float(long[2][1]) / 3600.0)
             if exif_data_gpsInfo['GPSLatitudeRef'] == 'S':
                 lat = 0 - lat
             if exif_data_gpsInfo['GPSLongitudeRef'] == 'W':
