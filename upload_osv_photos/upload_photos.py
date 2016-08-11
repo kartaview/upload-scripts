@@ -311,8 +311,8 @@ def parseCsv(files, backup_path):
     senzor_data = []
     app_version = None
     try:
-        read = files.readline().replace(" ", ";")
-        device = read.split(";")[0]
+        read = files.readline().replace(" ", "_")
+        device = read.split(";")[0].replace('_', ' ')
         if 'iP' in device:
             version = read.split(';')[2].replace("\n", "")
             if version == "":
@@ -326,18 +326,17 @@ def parseCsv(files, backup_path):
                 if version == '1.0.8':
                     app_version = read.split(';')[3].replace("\n", "")
         else:
-            version = read.split(';')[3].replace("\n", "")
-            device += "-" + read.split(';')[1].replace("\n", "")
+            version = read.split(';')[2].replace("\n", "")
             if version == "":
                 version = 'ios_first_version'
                 platformVersion = 'Unknown'
             else:
                 try:
-                    platformVersion = read.split(';')[2].replace("\n", "")
+                    platformVersion = read.split(';')[1].replace("\n", "")
                 except Exception:
                     platformVersion = 'Unknown'
                 if version == '1.0.8':
-                    app_version = read.split(';')[4].replace("\n", "")
+                    app_version = read.split(';')[3].replace("\n", "")
         curent_format = format[version]
         compas = -1
         longitude = 0
