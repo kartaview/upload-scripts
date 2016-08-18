@@ -288,7 +288,9 @@ def main(argv):
         url_sequence = 'http://openstreetview.com/1.0/sequence/'
         url_photo = 'http://openstreetview.com/1.0/photo/'
         url_finish = 'http://openstreetview.com/1.0/sequence/finished-uploading/'
-
+    local_dirs = os.listdir()
+    if str(path).replace('/','') in local_dirs:
+        path = os.getcwd() + '/' + path
     if os.path.basename(path) != "":
         path = path + "/"
     # photos_path = sorted(os.listdir(path))
@@ -391,7 +393,7 @@ def main(argv):
         if (index % 100 == 0 and index != 0) and local_count >= count:
             count_uploaded = thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_img)
             list_to_upload = []
-    if index % 100 != 0:
+    if (index % 100 != 0) or index == 0 :
         count_uploaded = thread(max_workers, url_photo, list_to_upload, path, count_uploaded, nr_photos_upload)
 
     data_finish = {'externalUserId': user_id,
