@@ -292,7 +292,7 @@ def main(argv):
     if str(path).replace('/','') in local_dirs:
         path = os.getcwd() + '/' + path
     if os.path.basename(path) != "":
-        path = path + "/"
+        path += "/"
     # photos_path = sorted(os.listdir(path))
     old_dir = os.getcwd()
     os.chdir(path)
@@ -302,12 +302,10 @@ def main(argv):
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
             try:
                 latitude, longitude, compas = get_gps_lat_long_compass(path + photo_path)
-            except ValueError as e:
-                if e != None:
+            except Exception:
                     try:
                         tags = exifread.process_file(open(path + photo_path, 'rb'))
                         latitude, longitude = get_exif_location(tags)
-                        compas = -1
                     except Exception:
                         continue
             data_sequence = {'externalUserId': user_id,
@@ -365,14 +363,13 @@ def main(argv):
                 photo = {'photo': (photo_name, open(path + photo_to_upload, 'rb'), 'image/jpeg')}
                 try:
                     latitude, longitude, compas = get_gps_lat_long_compass(path + photo_to_upload)
-                except ValueError as e:
-                    if e != None:
-                        try:
-                            tags = exifread.process_file(photo['photo'][1])
-                            latitude, longitude = get_exif_location(tags)
-                            compas = -1
-                        except Exception:
-                            continue
+                except Exception:
+                    try:
+                        tags = exifread.process_file(open(path + photo_to_upload, 'rb'))
+                        latitude, longitude = get_exif_location(tags)
+                        compas = -1
+                    except Exception:
+                        continue
                 if compas == -1:
                     data_photo = {'coordinate': str(latitude) + "," + str(longitude),
                                   'sequenceId': id_sequence,
@@ -410,4 +407,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    import warnings
+
+    warnings.filterwarnings("ignore")
     main(sys.argv[1:])
