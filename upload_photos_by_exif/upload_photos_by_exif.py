@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # Python 3 only support
+import operator
+
 __author__ = "Racasan Bogdan"
 import getopt
 import os
@@ -289,25 +291,34 @@ def main(argv):
         url_photo = 'http://openstreetview.com/1.0/photo/'
         url_finish = 'http://openstreetview.com/1.0/sequence/finished-uploading/'
     local_dirs = os.listdir()
-    if str(path).replace('/','') in local_dirs:
+    if str(path).replace('/', '') in local_dirs:
         path = os.getcwd() + '/' + path
     if os.path.basename(path) != "":
         path += "/"
-    # photos_path = sorted(os.listdir(path))
+
     old_dir = os.getcwd()
     os.chdir(path)
     photos_path = sorted(os.listdir(path), key=os.path.getmtime)
     os.chdir(old_dir)
+    time_stam_list = []
+    # check if there ar files with same timestamp
+    for photo_path in [p for p in photos_path]:
+        if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
+            if os.path.getatime(path + photo_path) in time_stam_list:
+                # if there exist then sort by name
+                photos_path = sorted(os.listdir(path), key=operator.itemgetter(1))
+                break
+            time_stam_list.append(os.path.getatime(path + photo_path))
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
             try:
                 latitude, longitude, compas = get_gps_lat_long_compass(path + photo_path)
             except Exception:
-                    try:
-                        tags = exifread.process_file(open(path + photo_path, 'rb'))
-                        latitude, longitude = get_exif_location(tags)
-                    except Exception:
-                        continue
+                try:
+                    tags = exifread.process_file(open(path + photo_path, 'rb'))
+                    latitude, longitude = get_exif_location(tags)
+                except Exception:
+                    continue
             data_sequence = {'externalUserId': user_id,
                              'userType': 'osm',  # harcode
                              'userName': user_name,
@@ -390,7 +401,7 @@ def main(argv):
         if (index % 100 == 0 and index != 0) and local_count >= count:
             count_uploaded = thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_img)
             list_to_upload = []
-    if (index % 100 != 0) or index == 0 :
+    if (index % 100 != 0) or index == 0:
         count_uploaded = thread(max_workers, url_photo, list_to_upload, path, count_uploaded, nr_photos_upload)
 
     data_finish = {'externalUserId': user_id,
