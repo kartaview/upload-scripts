@@ -300,15 +300,15 @@ def main(argv):
     os.chdir(path)
     photos_path = sorted(os.listdir(path), key=os.path.getmtime)
     os.chdir(old_dir)
-    time_stam_list = []
+    time_stamp_list = []
     # check if there ar files with same timestamp
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
-            if os.path.getatime(path + photo_path) in time_stam_list:
+            if float(os.path.getmtime(path + photo_path)) in time_stamp_list:
                 # if there exist then sort by name
                 photos_path = sorted(os.listdir(path), key=operator.itemgetter(1))
                 break
-            time_stam_list.append(os.path.getatime(path + photo_path))
+            time_stamp_list.append(float(os.path.getmtime(path + photo_path)))
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
             try:
