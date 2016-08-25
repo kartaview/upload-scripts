@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # Python 3 only support
-import operator
 
 __author__ = "Racasan Bogdan"
 import getopt
@@ -14,8 +13,17 @@ from rauth import OAuth1Service
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 import concurrent.futures
+from operator import itemgetter
 
 COUNT_TO_WRITE = 0
+
+
+def get_exif(path):
+    import exifread
+    with open(path, 'rb') as fh:
+        tags = exifread.process_file(fh, stop_tag="EXIF DateTimeOriginal")
+        dateTaken = tags["EXIF DateTimeOriginal"]
+        return dateTaken
 
 
 def _get_if_exist(data, key):
@@ -301,14 +309,13 @@ def main(argv):
     photos_path = sorted(os.listdir(path), key=os.path.getmtime)
     os.chdir(old_dir)
     time_stamp_list = []
-    # check if there ar files with same timestamp
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
-            if float(os.path.getmtime(path + photo_path)) in time_stamp_list:
-                # if there exist then sort by name
-                photos_path = sorted(os.listdir(path), key=operator.itemgetter(1))
-                break
-            time_stamp_list.append(float(os.path.getmtime(path + photo_path)))
+            time_stamp_list.append({"file": photo_path, "timestamp": get_exif(path + photo_path).values})
+    time_stamp_list = sorted(time_stamp_list, key=itemgetter('timestamp'))
+    photos_path = []
+    for element in time_stamp_list:
+        photos_path.append(element['file'])
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
             try:
