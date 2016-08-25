@@ -342,6 +342,8 @@ def parseCsv(files, backup_path):
             if "," in line:
                 continue
             lines = line.replace("\n", "")
+            if lines == '':
+                continue
             if lines.split(";")[curent_format['longitude']] != '' and time_longitude < lines.split(";")[
                 curent_format['time']]:
                 time_longitude = lines.split(";")[curent_format['time']]
