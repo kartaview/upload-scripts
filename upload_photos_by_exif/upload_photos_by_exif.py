@@ -264,7 +264,16 @@ def main(argv):
                                       rfc2109=False)
             cj.set_cookie(c)
         opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
-        opener.open(urllib.request.Request(authorize_url))
+        try:
+            opener.open(urllib.request.Request(authorize_url))
+        except urllib.error.HTTPError as e:
+            print("Can't get osm id")
+            print(
+                "Please retry and report this issue with the error code on https://github.com/openstreetview/uploader")
+            print(e.code)
+            print(e.read())
+            print(e)
+            sys.exit()
         pin = cj._cookies['www.openstreetmap.org']['/']['_osm_session'].value
 
         try:
@@ -343,7 +352,8 @@ def main(argv):
             h = requests.post(url_sequence, data=data_sequence)
             try:
                 id_sequence = h.json()['osv']['sequence']['id']
-            except:
+            except Exception as ex:
+                print("Fail code:" + str(ex))
                 print("Fail to create the sequence")
                 os.remove(path + "sequence_file.txt")
                 print("Please restart the script")
