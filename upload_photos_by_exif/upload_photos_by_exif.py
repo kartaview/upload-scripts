@@ -14,9 +14,9 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 import concurrent.futures
 from operator import itemgetter
-
+import warnings
 COUNT_TO_WRITE = 0
-
+PATH = None
 
 def get_exif(path):
     import exifread
@@ -123,10 +123,10 @@ def upload_photos(url_photo, dict, timeout, path):
     name = dict['name']
     conn = requests.post(url_photo, data=data_photo, files=photo, timeout=timeout)
     photo['photo'][1].close()
-    with open(path + "count_file.txt", "w") as fis:
+    with open(path + "count_file.txt", "a+") as fis:
         global COUNT_TO_WRITE
         COUNT_TO_WRITE += 1
-        fis.write((str(COUNT_TO_WRITE)))
+        fis.write((str(COUNT_TO_WRITE)) + '\n')
         fis.close()
     return {'json': conn.json(), 'name': name}
 
@@ -153,6 +153,7 @@ def thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_i
                     print (data['status'])
                     print("skipping - bad image")
             except Exception as exc:
+                print (exc)
                 print ("Uploaded error")
     return count_uploaded
 
@@ -176,7 +177,6 @@ def main(argv):
     elif "-p" != opts[0][0] and opts[0][0] != "-h":
         print ('upload_photos_by_exif3.py -p <path>')
         sys.exit()
-
     else:
         for opt, arg in opts:
             if opt == '-h':
@@ -214,6 +214,8 @@ def main(argv):
                 else:
                     max_workers = 4
                     print("Default threads: 4, maximum threads exceeded")
+    global PATH
+    PATH = path
     try:
         id_file = open("id_file.txt", "r+")
         string = id_file.read()
@@ -318,13 +320,19 @@ def main(argv):
     photos_path = sorted(os.listdir(path), key=os.path.getmtime)
     os.chdir(old_dir)
     time_stamp_list = []
+    exist_timestamp = True
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
-            time_stamp_list.append({"file": photo_path, "timestamp": get_exif(path + photo_path).values})
-    time_stamp_list = sorted(time_stamp_list, key=itemgetter('timestamp'))
-    photos_path = []
-    for element in time_stamp_list:
-        photos_path.append(element['file'])
+            try:
+                time_stamp_list.append({"file": photo_path, "timestamp": get_exif(path + photo_path).values})
+            except:
+                exist_timestamp = False
+                photos_path = sorted(os.listdir(path), key=itemgetter(1, 2))
+    if exist_timestamp:
+        time_stamp_list = sorted(time_stamp_list, key=itemgetter('timestamp'))
+        photos_path = []
+        for element in time_stamp_list:
+            photos_path.append(element['file'])
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
             try:
@@ -364,9 +372,13 @@ def main(argv):
         photos_path.remove("sequence_file.txt")
     except Exception as ex:
         print("No sequence file existing")
+    count_list = []
     try:
-        with open(path + "count_file.txt", "r") as fis:
-            count = int(fis.read())
+        count_file = open(path + "count_file.txt", "r")
+        lines = count_file.readlines()
+        for line in lines:
+            count_list.append(int(line.replace('\n','')))
+            count = int(line.replace('\n',''))
     except:
         count = 0
     nr_photos_upload = 0
@@ -384,7 +396,7 @@ def main(argv):
         photo_to_upload = photos_path[index]
         local_count += 1
         if ('jpg' in photo_to_upload.lower() or 'jpeg' in photo_to_upload.lower()) and \
-                        "thumb" not in photo_to_upload.lower() and local_count >= count:
+                        "thumb" not in photo_to_upload.lower() and local_count not in count_list:
             total_img = nr_photos_upload
             photo_name = os.path.basename(photo_to_upload)
             try:
@@ -415,7 +427,7 @@ def main(argv):
                     count += 1
             except Exception as ex:
                 print(ex)
-        if (index % 100 == 0 and index != 0) and local_count >= count:
+        if (index % 100 == 0 and index != 0) and local_count not in count_list:
             count_uploaded = thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_img)
             list_to_upload = []
     if (index % 100 != 0) or index == 0:
@@ -435,7 +447,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    import warnings
-
     warnings.filterwarnings("ignore")
     main(sys.argv[1:])
