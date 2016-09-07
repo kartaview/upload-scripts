@@ -15,8 +15,10 @@ from PIL.ExifTags import TAGS, GPSTAGS
 import concurrent.futures
 from operator import itemgetter
 import warnings
+
 COUNT_TO_WRITE = 0
 PATH = None
+
 
 def get_exif(path):
     import exifread
@@ -190,9 +192,9 @@ def main(argv):
                 print ("-Optional:")
                 print ("    -r   --run                 This upload pictures on: http://openstreetview.com/")
                 print (
-                    "    -r   --run staging         This upload pictures on: http://staging.open-street-view.skobbler.net")
+                    "    -r   --run staging         This upload pictures on: http://staging.openstreetview.com")
                 print (
-                    "    -r   --run test            This upload pictures on: http://tst.open-street-view.skobbler.net/")
+                    "    -r   --run test            This upload pictures on: http://testing.openstreetview.com/")
                 print ("Example: ")
                 print ("    python upload_photos_by_exif3.py -p /Users/example/Desktop/Photos/ ")
                 print ("    python upload_photos_by_exif3.py -p /Users/example/Desktop/Photos/ -t 2")
@@ -214,13 +216,28 @@ def main(argv):
                 else:
                     max_workers = 4
                     print("Default threads: 4, maximum threads exceeded")
+                    # run = "test"
+    if run == "test":
+        url_sequence = 'http://testing.openstreetview.com/1.0/sequence/'
+        url_photo = 'http://testing.openstreetview.com/1.0/photo/'
+        url_finish = 'http://testing.openstreetview.com/1.0/sequence/finished-uploading/'
+        url_access = 'http://testing.openstreetview.com/auth/openstreetmap/client_auth'
+    elif run == "staging":
+        url_sequence = 'http://staging.openstreetview.com/1.0/sequence/'
+        url_photo = 'http://staging.openstreetview.com/1.0/photo/'
+        url_finish = 'http://staging.openstreetview.com/1.0/sequence/finished-uploading/'
+        url_access = 'http://staging.openstreetview.com/auth/openstreetmap/client_auth'
+    else:
+        url_sequence = 'http://openstreetview.com/1.0/sequence/'
+        url_photo = 'http://openstreetview.com/1.0/photo/'
+        url_finish = 'http://openstreetview.com/1.0/sequence/finished-uploading/'
+        url_access = 'http://openstreetview.com/auth/openstreetmap/client_auth'
     global PATH
     PATH = path
     try:
-        id_file = open("id_file.txt", "r+")
-        string = id_file.read()
-        user_id = string.split(";")[0]
-        user_name = string.split(";")[1]
+        token_file = open("access_token.txt", "r+")
+        string = token_file.read()
+        access_token = string
     except Exception as ex:
         osm = OAuth1Service(
             name='openstreetmap',
@@ -279,36 +296,23 @@ def main(argv):
         pin = cj._cookies['www.openstreetmap.org']['/']['_osm_session'].value
 
         try:
-            session = osm.get_auth_session(request_token,
-                                           request_token_secret,
-                                           method='POST',
-                                           data={'oauth_verifier': pin})
-            r = session.get('/api/0.6/user/details', verify=False)
-            user_id = r.content.decode("utf-8").split("user id=")[1].split(" display_name")[0].replace('"', '')
-            user_name = r.content.decode("utf-8").split("display_name=")[1].split(" account_created=")[0].replace('"',
-                                                                                                                  '')
-            id_file = open("id_file.txt", "w+")
-            id_file.write(user_id + ";")
-            id_file.write(user_name)
-            id_file.close()
+            request_token_access, request_token_secret_access = osm.get_access_token(request_token,
+                                                                                     request_token_secret,
+                                                                                     method='POST',
+                                                                                     data={'oauth_verifier': pin})
+            data_access = {'request_token': request_token_access,
+                           'secret_token': request_token_secret_access
+                           }
+            resp_access = requests.post(url=url_access, data=data_access)
+            access_token = resp_access.json()['osv']['access_token']
+            token_file = open("access_token.txt", "w+")
+            token_file.write(access_token)
+            token_file.close()
         except Exception as ex:
             print (ex)
             print ("ERROR LOGIN no GRANT ACCES")
             sys.exit()
 
-    # run = "test"
-    if run == "test":
-        url_sequence = 'http://tst.open-street-view.skobbler.net/1.0/sequence/'
-        url_photo = 'http://tst.open-street-view.skobbler.net/1.0/photo/'
-        url_finish = 'http://tst.open-street-view.skobbler.net/1.0/sequence/finished-uploading/'
-    elif run == "staging":
-        url_sequence = 'http://staging.open-street-view.skobbler.net/1.0/sequence/'
-        url_photo = 'http://staging.open-street-view.skobbler.net/1.0/photo/'
-        url_finish = 'http://staging.open-street-view.skobbler.net/1.0/sequence/finished-uploading/'
-    else:
-        url_sequence = 'http://openstreetview.com/1.0/sequence/'
-        url_photo = 'http://openstreetview.com/1.0/photo/'
-        url_finish = 'http://openstreetview.com/1.0/sequence/finished-uploading/'
     local_dirs = os.listdir()
     if str(path).replace('/', '') in local_dirs:
         path = os.getcwd() + '/' + path
@@ -343,10 +347,8 @@ def main(argv):
                     latitude, longitude = get_exif_location(tags)
                 except Exception:
                     continue
-            data_sequence = {'externalUserId': user_id,
-                             'userType': 'osm',  # harcode
-                             'userName': user_name,
-                             'clientToken': '2ed202ac08ea9cf8d5f290567037dcc42ed202ac08ea9cf8d5f290567037dcc4',
+            data_sequence = {'uploadSource': 'Python',
+                             'access_token': access_token,
                              'currentCoordinate': str(latitude) + ',' + str(longitude)
                              }
             if latitude is not None and longitude is not None:
@@ -377,8 +379,8 @@ def main(argv):
         count_file = open(path + "count_file.txt", "r")
         lines = count_file.readlines()
         for line in lines:
-            count_list.append(int(line.replace('\n','')))
-            count = int(line.replace('\n',''))
+            count_list.append(int(line.replace('\n', '')))
+            count = int(line.replace('\n', ''))
     except:
         count = 0
     nr_photos_upload = 0
@@ -411,12 +413,15 @@ def main(argv):
                     except Exception:
                         continue
                 if compas == -1:
-                    data_photo = {'coordinate': str(latitude) + "," + str(longitude),
+                    # TODO: add 'acces_token': acces_token,
+                    data_photo = {'access_token': access_token,
+                                  'coordinate': str(latitude) + "," + str(longitude),
                                   'sequenceId': id_sequence,
                                   'sequenceIndex': count
                                   }
                 else:
-                    data_photo = {'coordinate': str(latitude) + "," + str(longitude),
+                    data_photo = {'access_token': access_token,
+                                  'coordinate': str(latitude) + "," + str(longitude),
                                   'sequenceId': id_sequence,
                                   'sequenceIndex': count,
                                   'headers': compas
@@ -433,8 +438,7 @@ def main(argv):
     if (index % 100 != 0) or index == 0:
         count_uploaded = thread(max_workers, url_photo, list_to_upload, path, count_uploaded, nr_photos_upload)
 
-    data_finish = {'externalUserId': user_id,
-                   'userType': 'osm',  # harcode
+    data_finish = {'access_token': access_token,
                    'sequenceId': id_sequence
                    }
     f = requests.post(url_finish, data=data_finish)
