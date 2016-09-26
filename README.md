@@ -35,9 +35,25 @@ Also will show in terminal the status for each that directory.
 Python 3 + dependencies from the requirements file. 
 The requirements can be install by running :pip3 install -r requirements.txt
 
+### Installing requirements on Debian/Ubuntu in a `virtualenv`
+
+```
+cd upload_photos_by_exif
+apt-get install build-essential libjpeg-dev zlib1g-dev python3-pip virtualenv libpython3-dev
+virtualenv -p python3 .
+source bin/activate
+pip install -r requirements.txt
+```
+
 ## Usage:
 ```
 python upload_photos_by_exif.py -p /Users/example/Desktop/Photos/AllPhotos/
 
 python upload_photos_by_exif.py -h for help.
 ```
+
+If you have installed the requirements into a `virtualenv`, then run
+```
+source <path to virtualenv>/bin/activate
+```
+before executing the above commands.
