@@ -57,11 +57,27 @@ def main(argv):
                 path = arg
             elif opt in ("-r", "--run"):
                 run = arg
+    # run = "test"
+    if run == "test":
+        url_sequence = 'http://testing.openstreetview.com/1.0/sequence/'
+        url_video = 'http://testing.openstreetview.com/1.0/video/'
+        url_finish = 'http://testing.openstreetview.com/1.0/sequence/finished-uploading/'
+        url_access = 'http://testing.openstreetview.com/auth/openstreetmap/client_auth'
+    elif run == "staging":
+        url_sequence = 'http://staging.openstreetview.com/1.0/sequence/'
+        url_video = 'http://staging.openstreetview.com/1.0/video/'
+        url_finish = 'http://staging.openstreetview.com/1.0/sequence/finished-uploading/'
+        url_access = 'http://staging.openstreetview.com/auth/openstreetmap/client_auth'
+    else:
+        url_sequence = 'http://openstreetview.com/1.0/sequence/'
+        url_video = 'http://openstreetview.com/1.0/video/'
+        url_finish = 'http://openstreetview.com/1.0/sequence/finished-uploading/'
+        url_access = 'http://openstreetview.com/auth/openstreetmap/client_auth'
+
     try:
-        id_file = open("id_file.txt", "r+")
-        string = id_file.read()
-        user_id = string.split(";")[0]
-        user_name = string.split(";")[1]
+        token_file = open("access_token.txt", "r+")
+        string = token_file.read()
+        access_token = string
     except Exception as ex:
         osm = OAuth1Service(
             name='openstreetmap',
@@ -78,7 +94,7 @@ def main(argv):
         print ("")
         print ('For login go to this URL in your browser:')
         print (authorize_url)
-        print (read_input("Login and  grant acces then press ENTER"))
+        print((read_input("Login and  grant acces then press ENTER")))
         cj = cookielib.CookieJar()
         cookies = [{
             "name": "",
@@ -109,36 +125,23 @@ def main(argv):
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
         ceva = opener.open(urllib2.Request(authorize_url))
         pin = cj._cookies['www.openstreetmap.org']['/']['_osm_session'].value
-
         try:
-            session = osm.get_auth_session(request_token,
-                                           request_token_secret,
-                                           method='POST',
-                                           data={'oauth_verifier': pin})
-            r = session.get('/api/0.6/user/details', verify=False)
-            user_id = r.content.split("user id=")[1].split(" display_name")[0].replace('"', '')
-            user_name = r.content.split("display_name=")[1].split(" account_created=")[0].replace('"', '')
-            id_file = open("id_file.txt", "w+")
-            id_file.write(user_id + ";")
-            id_file.write(user_name)
-            id_file.close()
+            request_token_access, request_token_secret_access = osm.get_access_token(request_token,
+                                                                                     request_token_secret,
+                                                                                     method='POST',
+                                                                                     data={'oauth_verifier': pin})
+            data_access = {'request_token': request_token_access,
+                           'secret_token': request_token_secret_access
+                           }
+            resp_access = requests.post(url=url_access, data=data_access)
+            access_token = resp_access.json()['osv']['access_token']
+            token_file = open("access_token.txt", "w+")
+            token_file.write(access_token)
+            token_file.close()
         except Exception as ex:
+            print (ex)
             print ("ERROR LOGIN no GRANT ACCES")
             sys.exit()
-
-    # run = "test"
-    if run == "test":
-        url_sequence = 'http://tst.open-street-view.skobbler.net/1.0/sequence/'
-        url_video = 'http://tst.open-street-view.skobbler.net/1.0/video/'
-        url_finish = 'http://tst.open-street-view.skobbler.net/1.0/sequence/finished-uploading/'
-    elif run == "staging":
-        url_sequence = 'http://staging.open-street-view.skobbler.net/1.0/sequence/'
-        url_video = 'http://staging.open-street-view.skobbler.net/1.0/video/'
-        url_finish = 'http://staging.open-street-view.skobbler.net/1.0/sequence/finished-uploading/'
-    else:
-        url_sequence = 'http://openstreetview.com/1.0/sequence/'
-        url_video = 'http://openstreetview.com/1.0/video/'
-        url_finish = 'http://openstreetview.com/1.0/sequence/finished-uploading/'
 
     directory = os.listdir(path)
     for dir in directory:
@@ -180,22 +183,16 @@ def main(argv):
                     app_version = None
                 if app_version is None:
                     if app_version is None:
-                        data_sequence = {'externalUserId': user_id,
-                                         'userType': 'osm',  # harcode
-                                         'userName': user_name,
-                                         'clientToken': '2ed202ac08ea9cf8d5f290567037dcc42ed202ac08ea9cf8d5f290567037dcc4',
-                                         # harcode
+                        data_sequence = {'uploadSource': 'Python',
+                                         'access_token': access_token,
                                          'currentCoordinate': str(video['latitude']) + "," + str(video['longitude']),
                                          'obdInfo': video['obdInfo'],
                                          'platformName': video['platformName'],
                                          'platformVersion': video['platformVersion']
                                          }
                     else:
-                        data_sequence = {'externalUserId': user_id,
-                                         'userType': 'osm',  # harcode
-                                         'userName': user_name,
-                                         'clientToken': '2ed202ac08ea9cf8d5f290567037dcc42ed202ac08ea9cf8d5f290567037dcc4',
-                                         # harcode
+                        data_sequence = {'uploadSource': 'Python',
+                                         'access_token': access_token,
                                          'currentCoordinate': str(video['latitude']) + "," + str(video['longitude']),
                                          'obdInfo': video['obdInfo'],
                                          'platformName': video['platformName'],
@@ -231,10 +228,10 @@ def main(argv):
                             video = {'video': (
                                 video_data['index'] + '.mp4', open(dir_path + video_data['index'] + '.mp4', 'rb'),
                                 'video/mp4')}
-                            data_video = {
-                                'sequenceId': id_sequence,
-                                'sequenceIndex': video_data['index']
-                            }
+                            data_video = {'access_token': access_token,
+                                          'sequenceId': id_sequence,
+                                          'sequenceIndex': video_data['index']
+                                          }
                             try:
                                 p = requests.post(url_video, data=data_video, files=video)
                             except requests.exceptions.Timeout:
@@ -281,8 +278,7 @@ def main(argv):
                             sys.exit()
                         print ("ERR")
                         print (ex)
-                data_finish = {'externalUserId': user_id,
-                               'userType': 'osm',  # harcode
+                data_finish = {'access_token': access_token,
                                'sequenceId': id_sequence
                                }
                 f = requests.post(url_finish, data=data_finish)
