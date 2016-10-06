@@ -294,6 +294,8 @@ def main(argv):
 format = {
     '1.1': {'time': 0, 'compas': 13, 'videoIndex': 14, 'tripFrameIndex': 15, 'longitude': 1, 'latitude': 2,
             'horizontal_accuracy': 4, 'ODB': 19},
+    '1.1.1': {'time': 0, 'compas': 13, 'videoIndex': 14, 'tripFrameIndex': 15, 'longitude': 1, 'latitude': 2,
+            'horizontal_accuracy': 4, 'ODB': 19}
 }
 
 
