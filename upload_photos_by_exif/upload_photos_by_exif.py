@@ -15,6 +15,7 @@ from PIL.ExifTags import TAGS, GPSTAGS
 import concurrent.futures
 from operator import itemgetter
 import warnings
+import json
 
 COUNT_TO_WRITE = 0
 PATH = None
@@ -159,6 +160,24 @@ def thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_i
                 print ("Uploaded error")
     return count_uploaded
 
+
+def get_data_from_json(path, photo_name):
+    folder_name = os.path.basename(path[:-1])
+    json_path = path.replace(folder_name,'cameras/internal')
+    json_file = json_path + photo_name.replace('jpg','json')
+    with open(json_file) as data_file:
+        json_data = json.load(data_file)
+    # for row in json_data:
+    #     print(row)
+    try:
+        lat = json_data['MAPLatitude']
+        lon = json_data['MAPLongitude']
+        comapss = json_data['MAPCompassHeading']['TrueHeading']
+    except: 
+        lat = None
+        lon = None
+        comapss = 1
+    return lat, lon, comapss
 
 def main(argv):
     try:
@@ -345,7 +364,10 @@ def main(argv):
                 try:
                     tags = exifread.process_file(open(path + photo_path, 'rb'))
                     latitude, longitude = get_exif_location(tags)
-                except Exception:
+                    if latitude is None and longitude is None:
+                        latitude, longitude, compas = get_data_from_json(path, photo_path)
+                except Exception as ex:
+                    print (ex)
                     continue
             data_sequence = {'uploadSource': 'Python',
                              'access_token': access_token,
@@ -359,6 +381,9 @@ def main(argv):
             sequence_file.close()
     except Exception as ex:
         with open(path + "sequence_file.txt", "w+") as sequence_file:
+            if latitude is None and longitude is None:
+                print("Error. There is no latitude and longitude in images.")
+                sys.exit()
             h = requests.post(url_sequence, data=data_sequence)
             try:
                 id_sequence = h.json()['osv']['sequence']['id']
@@ -410,6 +435,8 @@ def main(argv):
                         tags = exifread.process_file(open(path + photo_to_upload, 'rb'))
                         latitude, longitude = get_exif_location(tags)
                         compas = -1
+                        if latitude is None and longitude is None:
+                            latitude, longitude, compas = get_data_from_json(path, photo_path)
                     except Exception:
                         continue
                 if compas == -1:
