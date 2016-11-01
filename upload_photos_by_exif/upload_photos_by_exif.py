@@ -173,7 +173,7 @@ def get_data_from_json(path, photo_name):
         lat = json_data['MAPLatitude']
         lon = json_data['MAPLongitude']
         comapss = json_data['MAPCompassHeading']['TrueHeading']
-    except: 
+    except:
         lat = None
         lon = None
         comapss = 1
