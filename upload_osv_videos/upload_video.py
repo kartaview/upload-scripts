@@ -234,6 +234,13 @@ def main(argv):
                                           }
                             try:
                                 p = requests.post(url_video, data=data_video, files=video)
+                                if int(p.status_code) != 200:
+                                    print("Request/Response fail")
+                                    retry_count = 0
+                                    while int(p.status_code) != 200:
+                                        print("Retry attempt : " + str(retry_count))
+                                        p = requests.post(url_video, data=data_video, files=video)
+                                        retry_count += 1
                             except requests.exceptions.Timeout:
                                 print("Timout error  retry:")
                                 count_timeout = 0
@@ -299,7 +306,9 @@ format = {
     '1.1.2': {'time': 0, 'compas': 13, 'videoIndex': 14, 'tripFrameIndex': 15, 'longitude': 1, 'latitude': 2,
             'horizontal_accuracy': 4, 'ODB': 19} ,
     '1.1.3': {'time': 0, 'compas': 13, 'videoIndex': 14, 'tripFrameIndex': 15, 'longitude': 1, 'latitude': 2,
-            'horizontal_accuracy': 4, 'ODB': 19}
+            'horizontal_accuracy': 4, 'ODB': 19},
+    '1.1.5': {'time': 0, 'compas': 13, 'videoIndex': 14, 'tripFrameIndex': 15, 'longitude': 1, 'latitude': 2,
+              'horizontal_accuracy': 4, 'ODB': 19}
 }
 
 
