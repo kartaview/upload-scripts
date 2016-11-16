@@ -125,6 +125,13 @@ def upload_photos(url_photo, dict, timeout, path):
     data_photo = dict['data']
     name = dict['name']
     conn = requests.post(url_photo, data=data_photo, files=photo, timeout=timeout)
+    if int(conn.status_code) != 200:
+        print("Request/Response fail")
+        retry_count = 0
+        while int(conn.status_code) != 200:
+            print("Retry attempt : " + str(retry_count))
+            conn = requests.post(url_photo, data=data_photo, files=photo, timeout=timeout)
+            retry_count += 1
     photo['photo'][1].close()
     with open(path + "count_file.txt", "a+") as fis:
         global COUNT_TO_WRITE
