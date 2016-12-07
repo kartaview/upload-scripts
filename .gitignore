@@ -1,0 +1,7 @@
+# ignore directories/files created by python's virtualenv
+
+upload_photos_by_exif/bin/
+upload_photos_by_exif/include/
+upload_photos_by_exif/lib/
+upload_photos_by_exif/pip-selfcheck.json
+
