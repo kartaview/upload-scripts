@@ -236,7 +236,7 @@ def main(argv):
             elif opt in ("-r", "--run"):
                 run = arg
             elif opt in ("-t", "--thread"):
-                if int(arg) < 10 and int(arg) > 0:
+                if int(arg) <= 10 and int(arg) > 0:
                     max_workers = int(arg)
                     print("Threads: " + str(max_workers))
                 else:
