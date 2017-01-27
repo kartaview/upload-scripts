@@ -411,8 +411,8 @@ def main(argv):
         count_file = open(path + "count_file.txt", "r")
         lines = count_file.readlines()
         for line in lines:
-            count_list.append(int(line.replace('\n', '')))
-            count = int(line.replace('\n', ''))
+            count_list.append(int(line.replace('\n', '').replace('\r', '')))
+            count = int(line.replace('\n', '').replace('\r', ''))
     except:
         count = 0
     nr_photos_upload = 0
