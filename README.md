@@ -50,6 +50,26 @@ pip install -r requirements.txt
 python upload_photos_by_exif.py -p /Users/example/Desktop/Photos/AllPhotos/
 
 python upload_photos_by_exif.py -h for help.
+
+```
+
+## Usage for uploading multiple sequences at once:
+
+```bash
+# List directories to be uploaded as sequences:
+
+find /home/bozo/mypics -mindepth 1 -type d
+
+# should return
+#/home/bozo/mypics/a
+#/home/bozo/mypics/b
+#/home/bozo/mypics/c
+
+# Upload the sequences:
+
+find /home/bozo/mypics -mindepth 1 -type d -print0 | xargs -L 1 --null ./upload_photos_by_exif.py -p
+
+# -print0 / --null allows to read filenames with spaces, etc. in them
 ```
 
 If you have installed the requirements into a `virtualenv`, then run
