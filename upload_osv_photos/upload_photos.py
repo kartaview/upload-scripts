@@ -275,9 +275,9 @@ def main(argv):
                            }
             f = requests.post(url_finish, data=data_finish)
             if f.json()['status']['apiCode'] == '600':
-                print ("Finish uploading form dir: " + dir_path)
+                print ("Finish uploading from dir: " + dir_path)
             else:
-                print ("FAIL uploading form dir: " + dir_path)
+                print ("FAIL uploading from dir: " + dir_path)
 
 
 format = {'1.0.3': {'time': 0, 'compas': 12, 'index': 13, 'longitude': 1, 'latitude': 2, 'horizontal_accuracy': 4},

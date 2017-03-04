@@ -291,9 +291,9 @@ def main(argv):
                 f = requests.post(url_finish, data=data_finish)
                 dir_err = False
                 if f.json()['status']['apiCode'] == '600':
-                    print ("Finish uploading form dir: " + dir_path + ' with sequence id: ' + str(id_sequence))
+                    print ("Finish uploading from dir: " + dir_path + ' with sequence id: ' + str(id_sequence))
                 else:
-                    print ("FAIL uploading form dir: " + dir_path)
+                    print ("FAIL uploading from dir: " + dir_path)
             else:
                 print ("")
 
