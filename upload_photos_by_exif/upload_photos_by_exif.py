@@ -22,7 +22,6 @@ PATH = None
 
 
 def get_exif(path):
-    import exifread
     with open(path, 'rb') as fh:
         tags = exifread.process_file(fh, stop_tag="EXIF DateTimeOriginal")
         dateTaken = tags["EXIF DateTimeOriginal"]
@@ -216,11 +215,11 @@ def main(argv):
                 print ("    -p   --path                Full path directory that contains photos")
                 print ("    -t   --thread              Set number of thread min = 1, max = 10, default = 4")
                 print ("-Optional:")
-                print ("    -r   --run                 This upload pictures on: http://openstreetview.com/")
+                print ("    -r   --run                 This upload pictures on: http://openstreetcam.com/")
                 print (
-                    "    -r   --run staging         This upload pictures on: http://staging.openstreetview.com")
+                    "    -r   --run staging         This upload pictures on: http://staging.openstreetcam.com")
                 print (
-                    "    -r   --run test            This upload pictures on: http://testing.openstreetview.com/")
+                    "    -r   --run test            This upload pictures on: http://testing.openstreetcam.com/")
                 print ("Example: ")
                 print ("    python upload_photos_by_exif3.py -p /Users/example/Desktop/Photos/ ")
                 print ("    python upload_photos_by_exif3.py -p /Users/example/Desktop/Photos/ -t 2")
@@ -254,10 +253,10 @@ def main(argv):
         url_finish = 'http://staging.openstreetview.com/1.0/sequence/finished-uploading/'
         url_access = 'http://staging.openstreetview.com/auth/openstreetmap/client_auth'
     else:
-        url_sequence = 'http://openstreetview.com/1.0/sequence/'
-        url_photo = 'http://openstreetview.com/1.0/photo/'
-        url_finish = 'http://openstreetview.com/1.0/sequence/finished-uploading/'
-        url_access = 'http://openstreetview.com/auth/openstreetmap/client_auth'
+        url_sequence = 'http://openstreetcam.com/1.0/sequence/'
+        url_photo = 'http://openstreetcam.com/1.0/photo/'
+        url_finish = 'http://openstreetcam.com/1.0/sequence/finished-uploading/'
+        url_access = 'http://openstreetcam.com/auth/openstreetmap/client_auth'
     global PATH
     PATH = path
     try:
@@ -314,7 +313,7 @@ def main(argv):
         except urllib.error.HTTPError as e:
             print("Can't get osm id")
             print(
-                "Please retry and report this issue with the error code on https://github.com/openstreetview/uploader")
+                "Please retry and report this issue with the error code on https://github.com/openstreetcam/uploader")
             print(e.code)
             print(e.read())
             print(e)
