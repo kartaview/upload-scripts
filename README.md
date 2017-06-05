@@ -1,17 +1,17 @@
-# Upload scripts 
+# Upload scripts
 Uploader tools for OpenStreetView
 
 # 1.Upload photos taken by OSV app
 
 ## Description:
-This script is used to upload photos from a local directory, taken with the iOS/Android OSV apps. 
-The user will need to login and grant access  and after this step the script will upload automatically all photos and metadata files. 
+This script is used to upload photos from a local directory, taken with the iOS/Android OSV apps.
+The user will need to login and grant access  and after this step the script will upload automatically all photos and metadata files.
 Also will show in terminal the status for each sequence.
 
-## Requirements: 
-Python 2.7 + dependencies from the requirements file. 
+## Requirements:
+Python 2.7 + dependencies from the requirements file.
 The requirements can be install by running : pip install -r requirements.txt
-    
+
 ## Usage:
 
 ```
@@ -22,17 +22,17 @@ python upload_video.py -p /Users/example/Desktop/Videos/
 python upload_photos.py -h for help
 
 python upload_video.py -h for help
-```    
----------   
+```
+---------
 # 2.Upload geotagged photos
 
 ## Description:
-This script is used to upload photos from a local directory. 
-The user will need to login and grant access  and after this step the script will upload automatically all photos. 
+This script is used to upload photos from a local directory.
+The user will need to login and grant access  and after this step the script will upload automatically all photos.
 Also will show in terminal the status for each that directory.
 
-## Requirements: 
-Python 3 + dependencies from the requirements file. 
+## Requirements:
+Python 3 + dependencies from the requirements file.
 The requirements can be install by running :pip3 install -r requirements.txt
 
 ### Installing requirements on Debian/Ubuntu in a `virtualenv`
@@ -77,3 +77,18 @@ If you have installed the requirements into a `virtualenv`, then run
 source <path to virtualenv>/bin/activate
 ```
 before executing the above commands.
+
+
+# 3. convert track to gpx
+
+## Description:
+This script is can be used to transform the track metedata file to gpx which may then be used to add geotags to the pictures you've taken with the app.
+
+## Requirements:
+Python 2.7 +
+
+## Usage:
+
+```
+python track_to_gpx.py -p /Users/example/Desktop/Photos/
+```
