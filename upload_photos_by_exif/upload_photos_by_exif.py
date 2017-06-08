@@ -16,10 +16,12 @@ import concurrent.futures
 from operator import itemgetter
 import warnings
 import json
+import time
+from datetime import timedelta
 
 COUNT_TO_WRITE = 0
 PATH = None
-
+START_TIME = time.time()
 
 def get_exif(path):
     with open(path, 'rb') as fh:
@@ -147,11 +149,19 @@ def thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_i
             try:
                 data = future.result()['json']
                 name = future.result()['name']
+                
+                if max_workers >=  float(COUNT_TO_WRITE):
+                        estimated_time = '...'
+                else:
+                        elapsed_time = time.time() - START_TIME
+                        estimated_time = str(timedelta(seconds=(elapsed_time/(COUNT_TO_WRITE))*(total_img-COUNT_TO_WRITE))).split(".")[0]
+                        
+   
                 print("processing {}".format(name))
                 if data['status']['apiCode'] == "600":
                     percentage = float((float(COUNT_TO_WRITE) * 100) / float(total_img))
                     print(("Uploaded - " + str(COUNT_TO_WRITE) + ' of total :' + str(
-                        total_img) + ", percentage: " + str(round(percentage, 2)) + "%"))
+                        total_img) + ", percentage: " + str(round(percentage, 2)) + "%"+" ET:"+estimated_time))
                 elif data['status']['apiCode'] == "610":
                     print("skipping - a requirement arguments is missing for upload")
                 elif data['status']['apiCode'] == "611":
@@ -425,6 +435,9 @@ def main(argv):
     count_uploaded = count
     global COUNT_TO_WRITE
     COUNT_TO_WRITE = count
+    global START_TIME
+    START_TIME = time.time()
+    
     for index in range(int_start, len([p for p in photos_path])):
         photo_to_upload = photos_path[index]
         local_count += 1
