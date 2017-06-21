@@ -77,3 +77,11 @@ If you have installed the requirements into a `virtualenv`, then run
 source <path to virtualenv>/bin/activate
 ```
 before executing the above commands.
+
+## Docker
+
+If you have Docker, you can upload geotagged photos without installing Python nor its requirements :
+```bash
+docker run -it --rm -v /where/your/images/are:/data openstreetcam/upload_photos_by_exif
+```
+
