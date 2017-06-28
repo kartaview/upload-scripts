@@ -289,9 +289,7 @@ format = {'1.0.3': {'time': 0, 'compas': 12, 'index': 13, 'longitude': 1, 'latit
           '1.0.8': {'time': 0, 'compas': 13, 'index': 14, 'longitude': 1, 'latitude': 2, 'horizontal_accuracy': 4,
                     'ODB': 18},
           'ios_first_version': {'time': 0, 'compas': 1, 'index': 13, 'longitude': 1, 'latitude': 2,
-                                'horizontal_accuracy': 4},
-          '1.1.6': {'time': 0, 'compas': 13, 'index': 15, 'longitude': 1, 'latitude': 2, 'horizontal_accuracy': 4,
-                    'ODB': 19}
+                                'horizontal_accuracy': 4}
           }
 
 
