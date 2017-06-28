@@ -157,7 +157,7 @@ def main(argv):
                 metaData_name = 'track.txt'
             elif os.path.isfile(path + "/" + dir + "/track.txt.gz"):
                 metaData_name = 'track.txt.gz'
-            dst = path + dir + "/" + 'index_write.txt'
+            dst = path + '/' + dir + "/" + 'index_write.txt'
 
             if os.path.isfile(dst):
                 print ("Metadata backup found")
