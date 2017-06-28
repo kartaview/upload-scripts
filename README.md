@@ -80,8 +80,10 @@ before executing the above commands.
 
 ## Docker
 
-If you have Docker, you can upload geotagged photos without installing Python nor its requirements :
+If you have Docker, you can use these scripts without installing Python nor its requirements:
 ```bash
 docker run -it --rm -v /where/your/images/are:/data openstreetcam/upload_photos_by_exif
+docker run -it --rm -v /where/your/videos/are:/data openstreetcam/upload_osv_videos
+docker run -it --rm -v /where/your/photos/are:/data openstreetcam/upload_osv_photos
 ```
 
