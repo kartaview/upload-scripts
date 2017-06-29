@@ -360,13 +360,19 @@ def main(argv):
     os.chdir(old_dir)
     time_stamp_list = []
     exist_timestamp = True
+    photos_found = False
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
+            photos_found = True
             try:
                 time_stamp_list.append({"file": photo_path, "timestamp": get_exif(path + photo_path).values})
             except:
                 exist_timestamp = False
                 photos_path = sorted(os.listdir(path), key=itemgetter(1, 2))
+    if not photos_found:
+        print ("No photos found in path \"%s\"." % (path))
+        print ("This program does not search for files in subdirectories of the given path.")
+        sys.exit()
     if exist_timestamp:
         time_stamp_list = sorted(time_stamp_list, key=itemgetter('timestamp'))
         photos_path = []
