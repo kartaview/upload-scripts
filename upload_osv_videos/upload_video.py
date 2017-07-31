@@ -237,9 +237,14 @@ def main(argv):
                                 if int(p.status_code) != 200:
                                     print("Request/Response fail")
                                     retry_count = 0
-                                    while int(p.status_code) != 200:
+                                    api_code = 0
+                                    while int(p.status_code) != 200 and api_code != 660:
                                         print("Retry attempt : " + str(retry_count))
                                         p = requests.post(url_video, data=data_video, files=video)
+                                        try:
+                                            api_code = int(p.json()["status"]["apiCode"])
+                                        except:
+                                            print("Couldn't parse API error code.")
                                         retry_count += 1
                             except requests.exceptions.Timeout:
                                 print("Timout error  retry:")
