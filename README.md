@@ -8,10 +8,10 @@ This script is used to upload photos from a local directory, taken with the iOS/
 The user will need to login and grant access  and after this step the script will upload automatically all photos and metadata files. 
 Also will show in terminal the status for each sequence.
 
-## Requirements: 
-Python 2.7 + dependencies from the requirements file. 
-The requirements can be install by running : pip install -r requirements.txt
-    
+## Requirements:
+Python 3 + dependencies from the requirements file.
+The requirements can be install by running :pip3 install -r requirements.txt
+
 ## Usage:
 
 ```
