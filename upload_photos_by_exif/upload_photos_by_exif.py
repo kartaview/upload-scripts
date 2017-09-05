@@ -16,13 +16,14 @@ import concurrent.futures
 from operator import itemgetter
 import warnings
 import json
+import time
+from datetime import timedelta
 
 COUNT_TO_WRITE = 0
 PATH = None
-
+START_TIME = time.time()
 
 def get_exif(path):
-    import exifread
     with open(path, 'rb') as fh:
         tags = exifread.process_file(fh, stop_tag="EXIF DateTimeOriginal")
         dateTaken = tags["EXIF DateTimeOriginal"]
@@ -148,11 +149,19 @@ def thread(max_workers, url_photo, list_to_upload, path, count_uploaded, total_i
             try:
                 data = future.result()['json']
                 name = future.result()['name']
+                
+                if max_workers >=  float(COUNT_TO_WRITE):
+                        estimated_time = '...'
+                else:
+                        elapsed_time = time.time() - START_TIME
+                        estimated_time = str(timedelta(seconds=(elapsed_time/(COUNT_TO_WRITE))*(total_img-COUNT_TO_WRITE))).split(".")[0]
+                        
+   
                 print("processing {}".format(name))
                 if data['status']['apiCode'] == "600":
                     percentage = float((float(COUNT_TO_WRITE) * 100) / float(total_img))
                     print(("Uploaded - " + str(COUNT_TO_WRITE) + ' of total :' + str(
-                        total_img) + ", percentage: " + str(round(percentage, 2)) + "%"))
+                        total_img) + ", percentage: " + str(round(percentage, 2)) + "%"+" ET:"+estimated_time))
                 elif data['status']['apiCode'] == "610":
                     print("skipping - a requirement arguments is missing for upload")
                 elif data['status']['apiCode'] == "611":
@@ -216,11 +225,11 @@ def main(argv):
                 print ("    -p   --path                Full path directory that contains photos")
                 print ("    -t   --thread              Set number of thread min = 1, max = 10, default = 4")
                 print ("-Optional:")
-                print ("    -r   --run                 This upload pictures on: http://openstreetview.com/")
+                print ("    -r   --run                 This upload pictures on: http://openstreetcam.com/")
                 print (
-                    "    -r   --run staging         This upload pictures on: http://staging.openstreetview.com")
+                    "    -r   --run staging         This upload pictures on: http://staging.openstreetcam.com")
                 print (
-                    "    -r   --run test            This upload pictures on: http://testing.openstreetview.com/")
+                    "    -r   --run test            This upload pictures on: http://testing.openstreetcam.com/")
                 print ("Example: ")
                 print ("    python upload_photos_by_exif3.py -p /Users/example/Desktop/Photos/ ")
                 print ("    python upload_photos_by_exif3.py -p /Users/example/Desktop/Photos/ -t 2")
@@ -254,10 +263,10 @@ def main(argv):
         url_finish = 'http://staging.openstreetview.com/1.0/sequence/finished-uploading/'
         url_access = 'http://staging.openstreetview.com/auth/openstreetmap/client_auth'
     else:
-        url_sequence = 'http://openstreetview.com/1.0/sequence/'
-        url_photo = 'http://openstreetview.com/1.0/photo/'
-        url_finish = 'http://openstreetview.com/1.0/sequence/finished-uploading/'
-        url_access = 'http://openstreetview.com/auth/openstreetmap/client_auth'
+        url_sequence = 'http://openstreetcam.com/1.0/sequence/'
+        url_photo = 'http://openstreetcam.com/1.0/photo/'
+        url_finish = 'http://openstreetcam.com/1.0/sequence/finished-uploading/'
+        url_access = 'http://openstreetcam.com/auth/openstreetmap/client_auth'
     global PATH
     PATH = path
     try:
@@ -314,7 +323,7 @@ def main(argv):
         except urllib.error.HTTPError as e:
             print("Can't get osm id")
             print(
-                "Please retry and report this issue with the error code on https://github.com/openstreetview/uploader")
+                "Please retry and report this issue with the error code on https://github.com/openstreetcam/uploader")
             print(e.code)
             print(e.read())
             print(e)
@@ -351,13 +360,19 @@ def main(argv):
     os.chdir(old_dir)
     time_stamp_list = []
     exist_timestamp = True
+    photos_found = False
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
+            photos_found = True
             try:
                 time_stamp_list.append({"file": photo_path, "timestamp": get_exif(path + photo_path).values})
             except:
                 exist_timestamp = False
                 photos_path = sorted(os.listdir(path), key=itemgetter(1, 2))
+    if not photos_found:
+        print ("No photos found in path \"%s\"." % (path))
+        print ("This program does not search for files in subdirectories of the given path.")
+        sys.exit()
     if exist_timestamp:
         time_stamp_list = sorted(time_stamp_list, key=itemgetter('timestamp'))
         photos_path = []
@@ -426,6 +441,9 @@ def main(argv):
     count_uploaded = count
     global COUNT_TO_WRITE
     COUNT_TO_WRITE = count
+    global START_TIME
+    START_TIME = time.time()
+    
     for index in range(int_start, len([p for p in photos_path])):
         photo_to_upload = photos_path[index]
         local_count += 1
@@ -477,9 +495,9 @@ def main(argv):
                    }
     f = requests.post(url_finish, data=data_finish)
     if f.json()['status']['apiCode'] == '600':
-        print(("Finish uploading form dir: " + path + " with sequence id: " + str(id_sequence)))
+        print(("Finish uploading from dir: " + path + " with sequence id: " + str(id_sequence)))
     else:
-        print(("FAIL uploading form dir: " + path))
+        print(("FAIL uploading from dir: " + path))
         print("Error: ")
         print(f.json())
 

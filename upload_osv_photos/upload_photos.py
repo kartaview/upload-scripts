@@ -157,7 +157,7 @@ def main(argv):
                 metaData_name = 'track.txt'
             elif os.path.isfile(path + "/" + dir + "/track.txt.gz"):
                 metaData_name = 'track.txt.gz'
-            dst = path + dir + "/" + 'index_write.txt'
+            dst = path + '/' + dir + "/" + 'index_write.txt'
 
             if os.path.isfile(dst):
                 print ("Metadata backup found")
@@ -275,9 +275,9 @@ def main(argv):
                            }
             f = requests.post(url_finish, data=data_finish)
             if f.json()['status']['apiCode'] == '600':
-                print ("Finish uploading form dir: " + dir_path)
+                print ("Finish uploading from dir: " + dir_path)
             else:
-                print ("FAIL uploading form dir: " + dir_path)
+                print ("FAIL uploading from dir: " + dir_path)
 
 
 format = {'1.0.3': {'time': 0, 'compas': 12, 'index': 13, 'longitude': 1, 'latitude': 2, 'horizontal_accuracy': 4},
@@ -289,7 +289,9 @@ format = {'1.0.3': {'time': 0, 'compas': 12, 'index': 13, 'longitude': 1, 'latit
           '1.0.8': {'time': 0, 'compas': 13, 'index': 14, 'longitude': 1, 'latitude': 2, 'horizontal_accuracy': 4,
                     'ODB': 18},
           'ios_first_version': {'time': 0, 'compas': 1, 'index': 13, 'longitude': 1, 'latitude': 2,
-                                'horizontal_accuracy': 4}
+                                'horizontal_accuracy': 4},
+          '1.1.6': {'time': 0, 'compas': 13, 'index': 15, 'longitude': 1, 'latitude': 2, 'horizontal_accuracy': 4,
+                    'ODB': 19}
           }
 
 

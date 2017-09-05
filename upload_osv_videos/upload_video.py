@@ -237,9 +237,14 @@ def main(argv):
                                 if int(p.status_code) != 200:
                                     print("Request/Response fail")
                                     retry_count = 0
-                                    while int(p.status_code) != 200:
+                                    api_code = 0
+                                    while int(p.status_code) != 200 and api_code != 660:
                                         print("Retry attempt : " + str(retry_count))
                                         p = requests.post(url_video, data=data_video, files=video)
+                                        try:
+                                            api_code = int(p.json()["status"]["apiCode"])
+                                        except:
+                                            print("Couldn't parse API error code.")
                                         retry_count += 1
                             except requests.exceptions.Timeout:
                                 print("Timout error  retry:")
@@ -291,9 +296,9 @@ def main(argv):
                 f = requests.post(url_finish, data=data_finish)
                 dir_err = False
                 if f.json()['status']['apiCode'] == '600':
-                    print ("Finish uploading form dir: " + dir_path + ' with sequence id: ' + str(id_sequence))
+                    print ("Finish uploading from dir: " + dir_path + ' with sequence id: ' + str(id_sequence))
                 else:
-                    print ("FAIL uploading form dir: " + dir_path)
+                    print ("FAIL uploading from dir: " + dir_path)
             else:
                 print ("")
 
@@ -308,7 +313,9 @@ format = {
     '1.1.3': {'time': 0, 'compas': 13, 'videoIndex': 14, 'tripFrameIndex': 15, 'longitude': 1, 'latitude': 2,
             'horizontal_accuracy': 4, 'ODB': 19},
     '1.1.5': {'time': 0, 'compas': 13, 'videoIndex': 14, 'tripFrameIndex': 15, 'longitude': 1, 'latitude': 2,
-              'horizontal_accuracy': 4, 'ODB': 19}
+              'horizontal_accuracy': 4, 'ODB': 19},
+    '1.1.6': {'time': 0, 'compas': 13, 'videoIndex': 14, 'tripFrameIndex': 15, 'longitude': 1, 'latitude': 2,
+              'horizontal_accuracy': 4, 'ODB': 19},
 }
 
 

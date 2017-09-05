@@ -1,10 +1,10 @@
 # Upload scripts 
-Uploader tools for OpenStreetView
+Uploader tools for [OpenStreetCam](https://www.openstreetcam.org/)
 
-# 1.Upload photos taken by OSV app
+# 1.Upload photos taken by OSC app
 
 ## Description:
-This script is used to upload photos from a local directory, taken with the iOS/Android OSV apps. 
+This script is used to upload photos from a local directory, taken with the iOS/Android OSC apps. 
 The user will need to login and grant access  and after this step the script will upload automatically all photos and metadata files. 
 Also will show in terminal the status for each sequence.
 
@@ -77,3 +77,13 @@ If you have installed the requirements into a `virtualenv`, then run
 source <path to virtualenv>/bin/activate
 ```
 before executing the above commands.
+
+## Docker
+
+If you have Docker, you can use these scripts without installing Python nor its requirements:
+```bash
+docker run -it --rm -v /where/your/images/are:/data openstreetcam/upload_photos_by_exif
+docker run -it --rm -v /where/your/videos/are:/data openstreetcam/upload_osv_videos
+docker run -it --rm -v /where/your/photos/are:/data openstreetcam/upload_osv_photos
+```
+
