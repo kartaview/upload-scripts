@@ -4,8 +4,6 @@ import warnings
 import sys
 import __init__
 import argparse
-from multiprocessing import Pool
-import tqdm
 from photo import UploadPhoto
 from utils import get_photos_list
 from utils import photos_to_upload
@@ -14,12 +12,7 @@ from osc.osc_actions import finish_upload
 from osc.osc_actions import get_osc_url
 from osc.osm_access import get_access_token
 from osc.sequence import get_sequence
-
-
-def do_upload(max_workers, generator, payload):
-    with Pool(max_workers) as p:
-        list(tqdm.tqdm(p.imap(generator, payload), total=len(payload), bar_format='{l_bar}{bar} {n_fmt}/{total_fmt} remaining:{remaining}  elapsed:{elapsed}'))
-        return p.map(generator, payload)
+from osc.utils import do_upload
 
 
 def get_args():
@@ -49,7 +42,9 @@ def get_args():
 def main():
     args = get_args()
     run = args.run
-    path = args.path
+    path = args.path if str(args.path).endswith('/') else str(args.path) + "/"
+
+    thread = int(args.thread)
     url_sequence, url_photo, url_finish, url_access = get_osc_url(run, 'photo')
     access_token = get_access_token(url_access)
     photos_path = get_photos_list(path)
@@ -60,7 +55,7 @@ def main():
 
         print("Found " + str(nr_photos_upload) + " pictures to upload")
 
-        do_upload(8, UploadPhoto(path, access_token, id_sequence, count_list, url_photo), photos_path)
+        do_upload(thread, UploadPhoto(path, access_token, id_sequence, count_list, url_photo), photos_path)
 
         finish_upload(url_finish, path, access_token, id_sequence)
     else:

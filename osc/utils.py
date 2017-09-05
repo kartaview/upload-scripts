@@ -1,6 +1,7 @@
 import gzip
 import os
-
+from multiprocessing import Pool
+import tqdm
 import sys
 
 
@@ -14,7 +15,7 @@ def get_metadata_path(path):
     elif os.path.isfile("{}/track.txt.gz".format(path)):
         metadata_name = 'track.txt.gz'
         metadata_type = 'gzip'
-    dst = '{}/index_write.txt'.format(path)
+    dst = '{}/count_file.txt'.format(path)
     return metadata_name, metadata_type, dst
 
 
@@ -42,9 +43,9 @@ def open_metadata(dir_path, metadata_name):
     return metadata
 
 
-def write_result(response, index_write, type_data):
+def write_result(response, index_write, type_data, type_upload):
     try:
-        if int(response.json()['osv']['photo']['id']) != "":
+        if int(response.json()['osv'][type_upload]['id']) != "":
             img_index = type_data['index']
             with open(index_write, 'a') as index_file:
                 index_file.write(str(img_index) + "\n")
@@ -58,3 +59,9 @@ def exception_firs_id_sequence(ex, index_write):
         print("Please restart the script")
         os.remove(index_write)
         sys.exit()
+
+
+def do_upload(max_workers, generator, payload):
+    with Pool(max_workers) as p:
+        list(tqdm.tqdm(p.imap(generator, payload), total=len(payload), bar_format='{l_bar}{bar} {n_fmt}/{total_fmt} remaining:{remaining}  elapsed:{elapsed}'))
+        return p.map(generator, payload)

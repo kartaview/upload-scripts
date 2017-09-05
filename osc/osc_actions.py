@@ -7,13 +7,18 @@ def make_request(url_upload, post_data, files, type_upload):
     try:
         response = requests.post(url_upload, data=post_data, files=files)
         if int(response.status_code) != 200:
-            if response.json()['status']['apiCode'] == '660':
+            try:
+                if response.json()['status']['apiCode'] == '660':
+                    return 660
+            except:
                 return 660
             retry_count = 0
             while int(response.status_code) != 200:
                 print("Retry attempt : " + str(retry_count))
                 response = requests.post(url_upload, data=post_data, files=files)
                 retry_count += 1
+                if retry_count == 10:
+                    sys.exit("Restart the script")
     except requests.exceptions.Timeout:
         print("Timeout error  retry:")
         count_timeout = 0

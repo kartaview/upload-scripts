@@ -1,10 +1,10 @@
 import json
 from operator import itemgetter
 import os
-from exif_processing import get_exif
 
 
 def get_photos_list(path):
+    from exif_processing import get_exif
     local_dirs = os.listdir()
     if str(path).replace('/', '') in local_dirs:
         path = os.getcwd() + '/' + path

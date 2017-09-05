@@ -1,4 +1,3 @@
-import exifread
 import os
 import sys
 import requests
@@ -48,6 +47,7 @@ def get_data_to_create_sequence(photos_path, access_token, path):
     from upload_photos_by_exif.exif_processing import get_gps_lat_long_compass
     from upload_photos_by_exif.exif_processing import get_exif_location
     from upload_photos_by_exif.utils import get_data_from_json
+    import exifread
 
     for photo_path in [p for p in photos_path]:
         if ('jpg' in photo_path.lower() or 'jpeg' in photo_path.lower()) and "thumb" not in photo_path.lower():
