@@ -18,7 +18,7 @@ from osc.utils import do_upload
 def get_args():
     """Parse ARGUMENTS."""
     arg = argparse.ArgumentParser(
-        description='Retrieve OpenStreetCam imagery')
+        description='Upload geotagged photos')
     arg.add_argument(
         '-p',
         '--path',

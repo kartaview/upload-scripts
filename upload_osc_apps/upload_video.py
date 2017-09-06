@@ -18,12 +18,12 @@ from upload_photos_by_exif.utils import get_uploaded_photos
 def get_args():
     """Parse ARGUMENTS."""
     arg = argparse.ArgumentParser(
-        description='Retrieve OpenStreetCam imagery')
+        description='Upload OpenStreetCam videos')
     arg.add_argument(
         '-p',
         '--path',
         required=True,
-        help='Full path directory that contains videos',
+        help='Full path directory that contains folders with trips',
         default=None)
     arg.add_argument(
         '-t',

@@ -52,6 +52,7 @@ def write_result(response, index_write, type_data, type_upload):
     except:
         print("Err for: " + type_data['index'] + ".mp4 with message: " + str(response.json()['status']['apiMessage']))
 
+
 def exception_firs_id_sequence(ex, index_write):
     if str(ex) == "local variable 'firs_id_sequence' referenced before assignment":
         print("Index file is corrupted")

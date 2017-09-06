@@ -4,17 +4,25 @@ Uploader tools for [OpenStreetCam](https://www.openstreetcam.org/)
 # 1.Upload photos taken by OSC app
 
 ## Description:
-This script is used to upload photos from a local directory, taken with the iOS/Android OSC apps. 
+This script is used to upload photos/videos from a local directory, that , taken with the iOS/Android OSC apps. 
 The user will need to login and grant access  and after this step the script will upload automatically all photos and metadata files. 
 Also will show in terminal the status for each sequence.
 
 ## Requirements:
 Python 3 + dependencies from the requirements file.
-The requirements can be install by running :pip3 install -r requirements.txt
+The requirements can be install by running :
+```
+pip3 install virtualenv
+virtualenv -p python3 .
+source bin/activate
+pip3 install -r requirements.txt
+```
 
 ## Usage:
 
 ```
+cd upload_osc_apps
+
 python upload_photos.py -p /Users/example/Desktop/Photos/
 
 python upload_video.py -p /Users/example/Desktop/Videos/
@@ -40,9 +48,7 @@ The requirements can be install by running :pip3 install -r requirements.txt
 ```
 cd upload_photos_by_exif
 apt-get install build-essential libjpeg-dev zlib1g-dev python3-pip virtualenv libpython3-dev
-virtualenv -p python3 .
-source bin/activate
-pip install -r requirements.txt
+
 ```
 
 ## Usage:
