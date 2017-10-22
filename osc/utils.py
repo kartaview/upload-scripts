@@ -65,4 +65,3 @@ def exception_firs_id_sequence(ex, index_write):
 def do_upload(max_workers, generator, payload):
     with Pool(max_workers) as p:
         list(tqdm.tqdm(p.imap(generator, payload), total=len(payload), bar_format='{l_bar}{bar} {n_fmt}/{total_fmt} remaining:{remaining}  elapsed:{elapsed}'))
-        return p.map(generator, payload)
