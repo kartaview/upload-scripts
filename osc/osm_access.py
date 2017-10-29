@@ -59,7 +59,7 @@ def get_osm_oauth(osm):
     except urllib.error.HTTPError as e:
         print("Can't get osm id")
         print(
-            "Please retry and report this issue with the error code on https://github.com/openstreetview/uploader")
+            "Please retry and report this issue with the error code on https://github.com/openstreetcam/upload-scripts")
         print(e.code)
         print(e.read())
         print(e)
