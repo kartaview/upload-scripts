@@ -65,20 +65,20 @@ def get_osc_login(url_access, osm, request_token, request_token_secret, pin):
 
 def get_osc_url(run, type_upload):
     if run == "test":
-        url_sequence = 'http://testing.openstreetview.com/1.0/sequence/'
-        url_type = 'http://testing.openstreetview.com/1.0/{}/'.format(type_upload)
-        url_finish = 'http://testing.openstreetview.com/1.0/sequence/finished-uploading/'
-        url_access = 'http://testing.openstreetview.com/auth/openstreetmap/client_auth'
+        url_sequence = 'https://testing.openstreetcam.org/1.0/sequence/'
+        url_type = 'https://testing.openstreetcam.org/1.0/{}/'.format(type_upload)
+        url_finish = 'https://testing.openstreetcam.org/1.0/sequence/finished-uploading/'
+        url_access = 'https://testing.openstreetcam.org/auth/openstreetmap/client_auth'
     elif run == "staging":
-        url_sequence = 'http://staging.openstreetview.com/1.0/sequence/'
-        url_type = 'http://staging.openstreetview.com/1.0/{}/'.format(type_upload)
-        url_finish = 'http://staging.openstreetview.com/1.0/sequence/finished-uploading/'
-        url_access = 'http://staging.openstreetview.com/auth/openstreetmap/client_auth'
+        url_sequence = 'https://staging.openstreetcam.org/1.0/sequence/'
+        url_type = 'https://staging.openstreetcam.org/1.0/{}/'.format(type_upload)
+        url_finish = 'https://staging.openstreetcam.org/1.0/sequence/finished-uploading/'
+        url_access = 'https://staging.openstreetcam.org/auth/openstreetmap/client_auth'
     else:
-        url_sequence = 'http://openstreetview.com/1.0/sequence/'
-        url_type = 'http://openstreetview.com/1.0/{}/'.format(type_upload)
-        url_finish = 'http://openstreetview.com/1.0/sequence/finished-uploading/'
-        url_access = 'http://openstreetview.com/auth/openstreetmap/client_auth'
+        url_sequence = 'https://openstreetcam.org/1.0/sequence/'
+        url_type = 'https://openstreetcam.org/1.0/{}/'.format(type_upload)
+        url_finish = 'https://openstreetcam.org/1.0/sequence/finished-uploading/'
+        url_access = 'https://openstreetcam.org/auth/openstreetmap/client_auth'
     return url_sequence, url_type, url_finish, url_access
 
 

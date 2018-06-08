@@ -11,11 +11,11 @@ def get_osm():
         name='openstreetmap',
         consumer_key='rBWV8Eaottv44tXfdLofdNvVemHOL62Lsutpb9tw',
         consumer_secret='rpmeZIp49sEjjcz91X9dsY0vD1PpEduixuPy8T6S',
-        request_token_url='http://www.openstreetmap.org/oauth/request_token',
-        access_token_url='http://www.openstreetmap.org/oauth/access_token',
-        authorize_url='http://www.openstreetmap.org/oauth/authorize',
+        request_token_url='https://www.openstreetmap.org/oauth/request_token',
+        access_token_url='https://www.openstreetmap.org/oauth/access_token',
+        authorize_url='https://www.openstreetmap.org/oauth/authorize',
         signature_obj='',
-        base_url='http://www.openstreetmap.org/')
+        base_url='https://www.openstreetmap.org/')
     return osm
 
 
