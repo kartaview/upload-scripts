@@ -3,18 +3,24 @@ import os
 from multiprocessing import Pool
 import tqdm
 import sys
+import shutil
 
 
 def get_metadata_path(path):
     metadata_name = None
     metadata_type = None
     print("{}/track.txt".format(path))
+    if os.path.isfile("{}/track.txt.gz".format(path)):
+	#alternative accepted metadata type
+        #metadata_name = 'track.txt.gz'
+        #metadata_type = 'gzip'
+        with gzip.open("{}/track.txt.gz".format(path), 'rb') as f_in:
+            with open("{}/track.txt".format(path), 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
     if os.path.isfile("{}/track.txt".format(path)):
         metadata_name = 'track.txt'
         metadata_type = 'text/plain'
-    elif os.path.isfile("{}/track.txt.gz".format(path)):
-        metadata_name = 'track.txt.gz'
-        metadata_type = 'gzip'
+
     dst = '{}/count_file.txt'.format(path)
     return metadata_name, metadata_type, dst
 
@@ -64,4 +70,4 @@ def exception_firs_id_sequence(ex, index_write):
 
 def do_upload(max_workers, generator, payload):
     with Pool(max_workers) as p:
-        list(tqdm.tqdm(p.imap(generator, payload), total=len(payload), bar_format='{l_bar}{bar} {n_fmt}/{total_fmt} remaining:{remaining}  elapsed:{elapsed}'))
+        return list(tqdm.tqdm(p.imap(generator, payload), total=len(payload), bar_format='{l_bar}{bar} {n_fmt}/{total_fmt} remaining:{remaining}  elapsed:{elapsed}'))

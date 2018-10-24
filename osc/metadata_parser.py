@@ -53,6 +53,7 @@ def get_app_details(files):
                 platform_version = 'Unknown'
             if version == '1.0.8':
                 app_version = read[3].replace("\n", "")
+    device = "Python"
     return version, app_version, platform_version, device
 
 

@@ -49,8 +49,9 @@ def main():
 
     access_token = get_access_token(url_access)
 
-    folders = os.listdir(path)
-
+    folders = [folder for folder in os.listdir(path) if os.path.isdir(path + "/" + folder)]
+    if len(folders) == 0:
+        print("Please specify the folder with trips folders")
     for folder in folders:
         dir_path = path + "/" + folder
         if os.path.isfile(dir_path + "/track.txt") or os.path.isfile(dir_path + "/track.txt.gz"):
@@ -68,7 +69,8 @@ def main():
                     finish_upload(url_finish, dir_path + '/', access_token, id_sequence)
             else:
                 continue
-
+        else:
+            print("Please make sure that your folder '{}' includes metadata (track.txt or track.txt.gz)".format(dir_path))
 
 if __name__ == "__main__":
     main()

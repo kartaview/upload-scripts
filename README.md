@@ -30,7 +30,17 @@ python upload_video.py -p /Users/example/Desktop/Videos/
 python upload_photos.py -h for help
 
 python upload_video.py -h for help
-```    
+```
+Note, that upload_video.py can work on Windows. Steps for that are:
+```
+remove `Pillow` module from requirements.txt
+pip install `virtualenv`
+virtualenv -p python .
+Scripts\activate.bat
+pip install -r requirements.txt
+Some other modules can be required depending on your installed Python distribution.
+Path to file must include slash ('/') instead of backslash('\')
+```
 ---------   
 # 2.Upload geotagged photos
 

@@ -87,7 +87,7 @@ def finish_upload(url_finish, path, access_token, id_sequence):
                    'sequenceId': id_sequence
                    }
     f = requests.post(url_finish, data=data_finish)
-    if f.json()['status']['apiCode'] == '600':
+    if str(f.json()['status']['apiCode']) == '600':
         print(("Finish uploading from dir: " + path + " with sequence id: " + str(id_sequence)))
     else:
         print(("FAIL uploading from dir: " + path))
