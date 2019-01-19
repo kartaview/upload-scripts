@@ -5,3 +5,6 @@ upload_photos_by_exif/include/
 upload_photos_by_exif/lib/
 upload_photos_by_exif/pip-selfcheck.json
 
+Pipfile.lock
+**/access_token.txt
+**/.DS_Store

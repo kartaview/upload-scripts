@@ -1,0 +1,21 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+pillow = "==5.4.1"
+requests = "==2.21.0"
+exifread = "==2.1.2"
+rauth = "==0.7.2"
+tqdm = "==4.15.0"
+appdirs = "==1.4.0"
+django = "==1.11.18"
+image = "==1.4.4"
+packaging = "==16.8"
+pyparsing = "==2.1.10"
+
+[requires]
+python_version = "3.7"
