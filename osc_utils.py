@@ -1,4 +1,6 @@
-"""custom upload to support upload progress"""
+"""utils module that contains useful functions"""
+
+import logging
 import os
 import gzip
 import shutil
@@ -8,12 +10,18 @@ from osc_models import Photo
 from metadata_parser import Photo as MetadataPhoto
 import constants
 
+LOGGER = logging.getLogger('osc_tools.osc_utils')
+
 
 def create_exif_from_metadata(path: str):
     """this method will generate exif data from metadata"""
     files = os.listdir(path)
     photos = []
     metadata_photos = []
+
+    if not os.path.isfile(os.path.join(path, constants.METADATA_NAME)):
+        LOGGER.warning("WARNING: No OSC metadata file found at %s", path)
+        return
 
     for file_path in files:
         file_name, file_extension = os.path.splitext(file_path)
@@ -23,16 +31,18 @@ def create_exif_from_metadata(path: str):
             if file_name.isdigit():
                 photo.index = int(file_name)
             photos.append(photo)
-        elif ".txt" in file_extension and "metadata" in file_name:
+        elif ".txt" in file_extension and constants.METADATA_NAME in file_path:
             metadata_file = file_path
             parser = MetadataManager.get_metadata_parser(path + "/" + metadata_file)
             parser.start_new_reading()
             metadata_photos = parser.all_photos()
-            metadata_device = parser.device_name()
 
     if metadata_photos:
         photos.sort(key=lambda x: int(os.path.splitext(os.path.basename(x.path))[0]))
         metadata_photos.sort(key=lambda x: x.frame_index)
+    else:
+        LOGGER.warning("WARNING: NO metadata photos found at %s", path)
+        return
 
     for photo in photos:
         metadata_photo: MetadataPhoto = None
@@ -42,7 +52,7 @@ def create_exif_from_metadata(path: str):
                 break
         if not metadata_photo:
             continue
-        __metadata_photo_to_photo(metadata_photo, photo, metadata_device)
+        __metadata_photo_to_photo(metadata_photo, photo)
 
     for photo in photos:
         tags = exif_processing.create_required_gps_tags(photo.gps_timestamp,
@@ -55,7 +65,7 @@ def create_exif_from_metadata(path: str):
         exif_processing.add_gps_tags(photo.path, tags)
 
 
-def __metadata_photo_to_photo(metadata_photo: MetadataPhoto, photo: Photo, metadata_device: str):
+def __metadata_photo_to_photo(metadata_photo: MetadataPhoto, photo: Photo):
     if metadata_photo.gps.latitude:
         photo.latitude = float(metadata_photo.gps.latitude)
     if metadata_photo.gps.longitude:

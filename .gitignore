@@ -1,5 +1,5 @@
 # OSC Tools
-osc_tools/credentials.json
+credentials.json
 *.log
 .idea/
 
