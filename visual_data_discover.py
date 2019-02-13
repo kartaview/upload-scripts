@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """This script is used to discover video files, or photo files"""
 
 import os

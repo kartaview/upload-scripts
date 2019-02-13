@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """Tools developed by OpenStreetCam to help contributors."""
 
 import logging
