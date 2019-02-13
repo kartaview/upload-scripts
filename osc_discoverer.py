@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """This script is used to discover video files, sensor info and return Sequences."""
 import os
 import json
