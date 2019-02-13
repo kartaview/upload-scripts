@@ -1,4 +1,4 @@
-requests==2.9.1
+requests>=2.20.0
 rauth==0.7.2
 ExifRead==2.1.2
 tqdm==4.29.1
