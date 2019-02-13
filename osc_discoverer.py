@@ -199,10 +199,6 @@ class SequenceDiscovererFactory:
         finished_finder = SequenceDiscoverer()
         finished_finder.name = "Done Uploading"
         finished_finder.ignored_for_upload = True
-<<<<<<< HEAD
-=======
-        finished_finder.online_id = None
->>>>>>> 0acaf2ba06955b365ae5df4702c47a7fdc30a0b7
         finished_finder.visual_data = None
         finished_finder.osc_metadata = None
         finished_finder.validator = SequenceFinishedValidator()
