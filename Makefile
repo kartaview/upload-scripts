@@ -1,8 +1,8 @@
-.PHONY: default ctags pycodestyle clean
+.PHONY: default pycodestyle clean
 
-default: ctags pycodestyle
+default: tags pycodestyle
 
-ctags:
+tags: *.py
 	ctags ./
 
 pycodestyle:
