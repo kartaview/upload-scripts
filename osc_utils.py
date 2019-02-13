@@ -1,5 +1,4 @@
 """utils module that contains useful functions"""
-
 import logging
 import os
 import gzip
