@@ -19,7 +19,7 @@ source bin/activate
 pip3 install -r requirements.txt
 ```
 
-##1. Upload photos to OpenStreetCam
+## 1. Upload photos to OpenStreetCam
 
 ##### Description
 This script is used to upload sequences from a local directory. The available formats are:
@@ -41,7 +41,7 @@ python osc_tools.py upload -p ~/OSC_seqences
 
 ```
 
-##2. Generate Exif info from OSC metadata file
+## 2. Generate Exif info from OSC metadata file
 
 ##### Description
 This script generates GPS Exif info for each image from an OSC metadata format file.
