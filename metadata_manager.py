@@ -2,8 +2,8 @@
 
 import logging
 from metadata_parser import MetadataParser
-from metadata_parser import Photo, GPS
 from metadata_parser_legacy import MetadataParserLegacy
+from metadata_models import Photo, GPS
 
 
 LOGGER = logging.getLogger('osc_tools.metadata_manager')

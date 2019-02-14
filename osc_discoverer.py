@@ -142,7 +142,7 @@ class SequenceDiscoverer:
 
     def _find_latitude_longitude(self, sequence: Sequence):
         if not sequence.online_id:
-            if sequence.osc_metadata:
+            if sequence.osc_metadata and type(self.validator, SequenceMetadataValidator):
                 gps = self.validator.metadata_manager.first_location(sequence.osc_metadata)
                 if gps:
                     sequence.latitude = gps.latitude

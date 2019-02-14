@@ -40,11 +40,10 @@ class VisualData:
         self.index: int = None
 
     def __eq__(self, other):
-        if isinstance(other, Video):
+        if isinstance(other, VisualData):
             return self.path == other.path and \
                    self.index == other.index
         return False
-
 
     def __hash__(self):
         return hash(self.path, self.index)
@@ -64,7 +63,7 @@ class Photo(VisualData):
         self.gps_compass: float = None
 
     def __eq__(self, other):
-        if isinstance(other, Video):
+        if isinstance(other, Photo):
             return self.gps_timestamp == other.gps_timestamp and \
                    self.latitude == other.path and \
                    self.longitude == other.longitude

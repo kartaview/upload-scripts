@@ -13,9 +13,6 @@ LOGGER = logging.getLogger('osc_tools.validators')
 class SequenceValidator:
     """This class checks if a Sequence will be accepted on the OSC server as a valid sequence"""
 
-    def __init__(self):
-        self.metadata_manager: MetadataManager = MetadataManager()
-
     def __eq__(self, other):
         if isinstance(other, SequenceValidator):
             return self == other
@@ -45,6 +42,9 @@ class SequenceValidator:
 class SequenceMetadataValidator(SequenceValidator):
     """SequenceMetadataValidator is a SequenceValidator responsible of validating if a sequence
     that has metadata"""
+
+    def __init__(self):
+        self.metadata_manager: MetadataManager = MetadataManager()
 
     def __eq__(self, other):
         if isinstance(other, SequenceMetadataValidator):
