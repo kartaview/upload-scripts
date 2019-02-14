@@ -157,3 +157,5 @@ dmypy.json
 # requirements.txt copy used for Docker
 docker/requirements.txt
 
+# ignore images Docker helper directory
+images/*
