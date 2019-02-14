@@ -223,7 +223,6 @@ class OSCApi:
                                   index: int) -> bool:
         if response is None:
             return False
-
         if response.status_code != 200:
             json_response = response.json()
             if "status" in json_response and \
@@ -463,7 +462,7 @@ class OSCApi:
                           }
             url = OSCApiMethods.sequence_create(self.environment.value)
             if sequence.metadata_url:
-                load_data = {'photo': (constants.METADATA_NAME,
+                load_data = {'metaData': (constants.METADATA_NAME,
                                        open(sequence.metadata_url, 'rb'),
                                        'text/plain')}
                 response = requests.post(url,

@@ -62,7 +62,8 @@ class OSCUploadManager:
                                    "processing at %s", sequence.path,
                                    self.login_controller.osc_api.sequence_link(sequence))
                 else:
-                    LOGGER.warning("    Failed sequence at %s", sequence.path)
+                    LOGGER.warning("    Failed to upload sequence at %s. Restart the script in "
+                                   "order to finish you upload for this sequence.", sequence.path)
             LOGGER.warning("Finished uploading")
             self.progress_bar.close()
 
@@ -121,6 +122,7 @@ class SequenceUploadOperation:
         osc_sequence.longitude = sequence.longitude
         osc_api = self.manager.login_controller.osc_api
         online_id, error = osc_api.create_sequence(osc_sequence, self.user_token)
+        sequence.online_id = online_id
         if error:
             return False, online_id
         self.__persist_squence_id(sequence.online_id, sequence.path)
@@ -217,7 +219,6 @@ class PhotoUploadOperation:
         received as parameter. It returns a tuple: success as bool and photo index as int"""
         user = self.manager.login_controller.user
         api = self.manager.login_controller.osc_api
-
         osc_photo = OSCPhoto()
         osc_photo.image_name = str(photo.index) + ".jpg"
         osc_photo.latitude = photo.latitude

@@ -4,7 +4,10 @@
 import os
 import logging
 import exif_processing
+import constants
+from metadata_manager import MetadataManager
 from osc_models import VisualData, Photo, Video
+from metadata_models import Photo as MetadataPhoto
 
 LOGGER = logging.getLogger('osc_tools.visual_data_discoverer')
 
@@ -35,7 +38,6 @@ class PhotoDiscovery(VisualDataDiscoverer):
 
         files = os.listdir(path)
         photos = []
-
         for file_path in files:
             file_name, file_extension = os.path.splitext(file_path)
             if ("jpg" in file_extension or "jpeg" in file_extension) and \
@@ -88,6 +90,43 @@ class ExifPhotoDiscoverer(PhotoDiscovery):
     @classmethod
     def _sort_photo_list(cls, photos):
         photos.sort(key=lambda p: p.gps_timestamp)
+
+
+class PhotoMetadataDiscoverer(PhotoDiscovery):
+
+    @classmethod
+    def discover(cls, path: str):
+        photos, visual_type = super().discover(path)
+        metadata_file = os.path.join(path, constants.METADATA_NAME)
+        if os.path.exists(metadata_file):
+            parser = MetadataManager.get_metadata_parser(metadata_file)
+            parser.start_new_reading()
+            metadata_photos = parser.all_photos()
+            remove_photos = []
+            for photo in photos:
+                for tmp_photo in metadata_photos:
+                    if int(tmp_photo.frame_index) == photo.index:
+                        metadata_photo_to_photo(tmp_photo, photo)
+                        break
+                if not photo.latitude or not photo.longitude:
+                    remove_photos.append(photo)
+            return [x for x in photos if x not in remove_photos], visual_type
+        return [], visual_type
+
+
+def metadata_photo_to_photo(metadata_photo: MetadataPhoto, photo: Photo):
+    if metadata_photo.gps.latitude:
+        photo.latitude = float(metadata_photo.gps.latitude)
+    if metadata_photo.gps.longitude:
+        photo.longitude = float(metadata_photo.gps.longitude)
+    if metadata_photo.gps.speed:
+        photo.gps_speed = round(float(metadata_photo.gps.speed) * 3.6)
+    if metadata_photo.gps.altitude:
+        photo.gps_altitude = float(metadata_photo.gps.altitude)
+    if metadata_photo.frame_index:
+        photo.index = int(metadata_photo.frame_index)
+    if metadata_photo.timestamp:
+        photo.gps_timestamp = float(metadata_photo.timestamp)
 
 
 class VideoDiscoverer(VisualDataDiscoverer):

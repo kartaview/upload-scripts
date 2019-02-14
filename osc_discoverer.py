@@ -6,10 +6,9 @@ import logging
 import constants
 from visual_data_discover import VisualDataDiscoverer
 from visual_data_discover import ExifPhotoDiscoverer
-from visual_data_discover import PhotoDiscovery
+from visual_data_discover import PhotoMetadataDiscoverer
 from visual_data_discover import VideoDiscoverer
 from validators import SequenceValidator, SequenceMetadataValidator, SequenceFinishedValidator
-from validators import SequenceToFinishValidator
 from osc_utils import unzip_metadata
 from osc_models import Sequence, Photo
 
@@ -142,7 +141,7 @@ class SequenceDiscoverer:
 
     def _find_latitude_longitude(self, sequence: Sequence):
         if not sequence.online_id:
-            if sequence.osc_metadata and type(self.validator, SequenceMetadataValidator):
+            if sequence.osc_metadata and isinstance(self.validator, SequenceMetadataValidator):
                 gps = self.validator.metadata_manager.first_location(sequence.osc_metadata)
                 if gps:
                     sequence.latitude = gps.latitude
@@ -161,7 +160,6 @@ class SequenceDiscovererFactory:
     def discoverers(cls) -> [SequenceDiscoverer]:
         """This is a factory method that will return Sequence Discoverers"""
         return [cls.finished_discoverer(),
-                cls.to_finish_discoverer(),
                 cls.photo_metadata_discoverer(),
                 cls.exif_discoverer(),
                 cls.video_discoverer()]
@@ -171,7 +169,7 @@ class SequenceDiscovererFactory:
         """This method will return a photo discoverer"""
         photo_metadata_finder = SequenceDiscoverer()
         photo_metadata_finder.name = "Metadata-Photo"
-        photo_metadata_finder.visual_data = PhotoDiscovery()
+        photo_metadata_finder.visual_data = PhotoMetadataDiscoverer()
         photo_metadata_finder.validator = SequenceMetadataValidator()
         return photo_metadata_finder
 
@@ -204,13 +202,3 @@ class SequenceDiscovererFactory:
         finished_finder.validator = SequenceFinishedValidator()
         return finished_finder
 
-    @classmethod
-    def to_finish_discoverer(cls) -> SequenceDiscoverer:
-        """this method will return a discoverer that finds all the sequences that only need
-        a finish upload request"""
-        to_finish_finder = SequenceDiscoverer()
-        to_finish_finder.name = "Finish remaining"
-        to_finish_finder.visual_data = None
-        to_finish_finder.osc_metadata = None
-        to_finish_finder.validator = SequenceToFinishValidator()
-        return to_finish_finder

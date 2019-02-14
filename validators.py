@@ -100,24 +100,3 @@ class SequenceFinishedValidator(SequenceValidator):
                 constants.UPLOAD_FINISHED in sequence.progress:
             return True
         return False
-
-
-class SequenceToFinishValidator(SequenceValidator):
-    """SequenceToFinishValidator is a SequenceValidator that is responsible to validate
-    a sequence that requires only the finish request"""
-
-    def __eq__(self, other):
-        if isinstance(other, SequenceToFinishValidator):
-            return self == other
-        return False
-
-    def __hash__(self):
-        return super().__hash__()
-
-    def validate(self, sequence: Sequence) -> bool:
-        """This method will return true if a sequence is already uploaded but it was
-        not flagged as finished"""
-        if sequence.online_id and sequence.progress and \
-                constants.UPLOAD_FINISHED not in sequence.progress:
-            return True
-        return False
