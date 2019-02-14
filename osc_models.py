@@ -83,5 +83,4 @@ class Video(VisualData):
         return False
 
     def __hash__(self):
-        return hash(self.path,
-                    self.index)
+        return hash(self.path,self.index)

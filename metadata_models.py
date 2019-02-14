@@ -549,8 +549,6 @@ class ExifParameters(MetadataItem):
 # </editor-fold>
 
 
-
-
 def _available_parsers() -> [ItemParser]:
     """This function returns all the available item parsers"""
     photo_parser = Photo.parser_v1()
