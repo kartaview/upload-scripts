@@ -1,0 +1,2 @@
+This is a directory ignored by git that exists to help easily mount an image
+directory along with the upload-scripts code to a Docker container.
