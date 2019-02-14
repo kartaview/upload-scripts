@@ -60,3 +60,12 @@ python osc_tools.py generate_exif -h
 python osc_tools.py generate_exif -p ~/OSC_seqences/Sequence1
 
 ```
+
+##### Docker
+To run the scripts inside a Docker container:
+```
+make docker
+docker run -Pit osc-up osc_tools.py
+docker run -Pit --mount type=bind,source="$(pwd)",target=/opt/osc osc-up /opt/osc/osc_tools.py
+```
+The images directory in the repo will be available in the container at /opt/osc/images
