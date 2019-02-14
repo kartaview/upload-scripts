@@ -153,3 +153,7 @@ dmypy.json
 
 # vim swap
 .swp
+
+# requirements.txt copy used for Docker
+docker/requirements.txt
+
