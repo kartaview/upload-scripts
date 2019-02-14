@@ -40,7 +40,7 @@ class PhotoDiscovery(VisualDataDiscoverer):
         photos = []
         for file_path in files:
             file_name, file_extension = os.path.splitext(file_path)
-            if ("jpg" in file_extension or "jpeg" in file_extension) and \
+            if ("jpg" in file_extension.lower() or "jpeg" in file_extension.lower()) and \
                     "thumb" not in file_name.lower():
                 photo = cls._photo_from_path(os.path.join(path, file_path))
                 if photo:
