@@ -42,6 +42,7 @@ class PhotoDiscovery(VisualDataDiscoverer):
             file_name, file_extension = os.path.splitext(file_path)
             if ("jpg" in file_extension.lower() or "jpeg" in file_extension.lower()) and \
                     "thumb" not in file_name.lower():
+                LOGGER.debug("found a photo: %s", file_path)
                 photo = cls._photo_from_path(os.path.join(path, file_path))
                 if photo:
                     photos.append(photo)
