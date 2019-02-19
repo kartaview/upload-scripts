@@ -33,7 +33,7 @@ def _version() -> str:
 
 
 def _website(url: str) -> str:
-    return url.replace("-api", "")
+    return url.replace("-api", "").replace("api.", "")
 
 
 class OSCAPIEnvironment(Enum):

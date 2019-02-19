@@ -72,16 +72,22 @@ class ExifPhotoDiscoverer(PhotoDiscovery):
     def _photo_from_path(cls, path) -> Photo:
         photo = Photo(path)
         tags_data = exif_processing.all_tags(photo.path)
-        # required data
+
+        # required gps timestamp or exif timestamp
         photo.gps_timestamp = exif_processing.gps_timestamp(tags_data)
+        photo.exif_timestamp = exif_processing.timestamp(tags_data)
+        if not photo.gps_timestamp and photo.exif_timestamp:
+            photo.gps_timestamp = photo.exif_timestamp
+
+        # required latitude and longitude
         photo.latitude = exif_processing.gps_latitude(tags_data)
         photo.longitude = exif_processing.gps_longitude(tags_data)
         if not photo.latitude or \
                 not photo.longitude or \
                 not photo.gps_timestamp:
             return None
+
         # optional data
-        photo.exif_timestamp = exif_processing.timestamp(tags_data)
         photo.gps_speed = exif_processing.gps_speed(tags_data)
         photo.gps_altitude = exif_processing.gps_altitude(tags_data)
         photo.gps_compass = exif_processing.gps_compass(tags_data)
