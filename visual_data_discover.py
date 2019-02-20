@@ -92,6 +92,7 @@ class ExifPhotoDiscoverer(PhotoDiscovery):
         photo.gps_speed = exif_processing.gps_speed(tags_data)
         photo.gps_altitude = exif_processing.gps_altitude(tags_data)
         photo.gps_compass = exif_processing.gps_compass(tags_data)
+        LOGGER.debug("lat/lon: %f/%f", photo.latitude, photo.longitude)
         return photo
 
     @classmethod
