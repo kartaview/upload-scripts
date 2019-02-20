@@ -114,7 +114,7 @@ def gps_latitude(gps_data: {str: str}) -> Optional[float]:
         dms_values = gps_data[ExifTags.GPS_LATITUDE.value]
         _latitude = __dms_to_dd(dms_values)
         if ExifTags.GPS_LATITUDE_REF.value in gps_data and \
-                gps_data[ExifTags.GPS_LATITUDE_REF.value] == CardinalDirection.S.value:
+                (str(gps_data[ExifTags.GPS_LATITUDE_REF.value]) == str(CardinalDirection.S.value)):
             # cardinal direction is S so the latitude should be negative
             _latitude = -1 * _latitude
 
@@ -130,7 +130,7 @@ def gps_longitude(gps_data: {str: str}) -> Optional[float]:
         dms_values = gps_data[ExifTags.GPS_LONGITUDE.value]
         _longitude = __dms_to_dd(dms_values)
         if ExifTags.GPS_LONGITUDE_REF.value in gps_data and \
-                gps_data[ExifTags.GPS_LONGITUDE_REF.value] == CardinalDirection.W.value:
+                str(gps_data[ExifTags.GPS_LONGITUDE_REF.value]) == str(CardinalDirection.W.value):
             # cardinal direction is W so the longitude should be negative
             _longitude = -1 * _longitude
 
