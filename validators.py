@@ -26,7 +26,7 @@ class SequenceValidator:
         False the sequence is not valid and it is not usable for OSC servers.
         """
         LOGGER.debug("  Validating sequence using %s", str(self.__class__))
-        if not sequence.visual_items and not sequence.online_id:
+        if not sequence.visual_items:
             LOGGER.debug("    Sequence at %s will not be uploaded since we did not find "
                          "any compatible visual data", sequence.path)
             return False
