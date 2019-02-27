@@ -4,87 +4,81 @@ import concurrent.futures
 import os.path
 import shutil
 import logging
-from enum import Enum
 import requests
 import constants
+import osc_api_config
+from osc_api_config import OSCAPISubDomain
+from osc_api_models import OSCSequence, OSCPhoto, OSCUser
 
 LOGGER = logging.getLogger('osc_tools.osc_api_gateway')
 
 
-def _upload_url(env: str, resource: str) -> str:
+def _upload_url(env: OSCAPISubDomain, resource: str) -> str:
     return _osc_url(env) + '/' + _version() + '/' + resource + '/'
 
 
-def _osc_url(env: str) -> str:
-    base_url = __protocol() + env + __domain()
+def _osc_url(env: OSCAPISubDomain) -> str:
+    base_url = __protocol() + env.value + __domain()
     return base_url
 
 
 def __protocol() -> str:
-    return 'https://'
+    return osc_api_config.PROTOCOL
 
 
 def __domain() -> str:
-    return 'openstreetcam.org'
+    return osc_api_config.DOMAIN
 
 
 def _version() -> str:
-    return '1.0'
+    return osc_api_config.VERSION
 
 
 def _website(url: str) -> str:
     return url.replace("-api", "").replace("api.", "")
 
 
-class OSCAPIEnvironment(Enum):
-    """This is a enumeration of environments"""
-    TESTING = 'testing-api.'
-    STAGING = 'staging-api.'
-    BETA = 'beta-api.'
-    PRODUCTION = 'api.'
-
-
 class OSCApiMethods:
     """This is a factory class that creates API methods based on environment"""
 
     @classmethod
-    def sequence_create(cls, env: str) -> str:
+    def sequence_create(cls, env: OSCAPISubDomain) -> str:
         """this method will return the link to sequence create method"""
         return _osc_url(env) + "/" + _version() + "/sequence/"
 
     @classmethod
-    def sequence_details(cls, env: str) -> str:
+    def sequence_details(cls, env: OSCAPISubDomain) -> str:
         """this method will return the link to the sequence details method"""
         return _osc_url(env) + "/details"
 
     @classmethod
-    def user_sequences(cls, env: str) -> str:
+    def user_sequences(cls, env: OSCAPISubDomain) -> str:
         """this method returns the urls to the list of sequences that
         belong to a user"""
         return _osc_url(env) + "/my-list"
 
     @classmethod
-    def resource(cls, env: str, resource_name: str) -> str:
+    def resource(cls, env: OSCAPISubDomain, resource_name: str) -> str:
         """this method returns the url to a resource"""
         return _osc_url(env) + '/' + resource_name
 
     @classmethod
-    def photo_list(cls, env: str) -> str:
+    def photo_list(cls, env: OSCAPISubDomain) -> str:
         """this method returns photo list URL"""
         return _osc_url(env) + '/' + _version() + '/sequence/photo-list/'
 
     @classmethod
-    def video_upload(cls, env: str) -> str:
+    def video_upload(cls, env: OSCAPISubDomain) -> str:
         """this method returns video upload URL"""
         return _upload_url(env, 'video')
 
     @classmethod
-    def photo_upload(cls, env: str) -> str:
+    def photo_upload(cls, env: OSCAPISubDomain) -> str:
         """this method returns photo upload URL"""
         return _upload_url(env, 'photo')
 
     @classmethod
-    def login(cls, env: str, provider: str) -> str:
+    def login(cls, env: OSCAPISubDomain, provider: str) -> str:
         """this method returns login URL"""
         if provider == "osm":
             return _osc_url(env) + '/auth/openstreetmap/client_auth'
@@ -95,126 +89,15 @@ class OSCApiMethods:
         return None
 
     @classmethod
-    def finish_upload(cls, env: str) -> str:
+    def finish_upload(cls, env: OSCAPISubDomain) -> str:
         """this method returns a finish upload url"""
         return _osc_url(env) + '/' + _version() + '/sequence/finished-uploading/'
-
-
-class OSCUser:
-    """This class is model for OSC User"""
-
-    def __init__(self):
-        self.name = ""
-        self.user_id = ""
-        self.full_name = ""
-        self.access_token = ""
-
-    def description(self) -> str:
-        """description method that will return a string representation for this class"""
-        return "{ name: " + self.name + \
-               ", user_id: " + self.user_id + \
-               ", full_name: " + self.full_name + \
-               ", access_token = " + self.access_token + " }"
-
-    def __eq__(self, other):
-        if isinstance(other, OSCUser):
-            return self.user_id == other.user_id
-        return False
-
-    def __hash__(self):
-        return hash(self.user_id)
-
-
-class OSCPhoto:
-    """this is a model class for a photo from OSC API"""
-
-    def __init__(self):
-        self.latitude = None
-        self.longitude = None
-        self.compass = None
-        self.sequence_index = None
-        self.photo_id = None
-        self.image_name = None
-        self.date_added = None
-
-    @classmethod
-    def photo_from_json(cls, json):
-        """factory method to build a photo from a json representation"""
-        photo = OSCPhoto()
-        if 'lat' in json:
-            photo.latitude = json['lat']
-        if 'lon' in json:
-            photo.longitude = json['lon']
-        if 'sequence_index' in json:
-            photo.sequence_index = json['sequence_index']
-        if 'id' in json:
-            photo.photo_id = json['id']
-        if 'name' in json:
-            photo.image_name = json['name']
-        if 'date_added' in json:
-            photo.date_added = json['date_added']
-
-        return photo
-
-    def __eq__(self, other):
-        if isinstance(other, OSCPhoto):
-            return self.photo_id == other.photo_id
-        return False
-
-    def __hash__(self):
-        return hash(self.photo_id)
-
-
-class OSCSequence:
-    """this is a model class for a sequence from OSC API"""
-
-    def __init__(self):
-        self.photos: [OSCPhoto] = []
-        self.local_id: str = None
-        self.online_id: str = None
-        self.path: str = None
-        self.metadata_url = None
-        self.latitude = None
-        self.longitude = None
-
-    @classmethod
-    def sequence_from_json(cls, json):
-        """factory method to build a sequence form json representation"""
-        sequence = OSCSequence()
-        if 'id' in json:
-            sequence.online_id = json['id']
-        if 'meta_data_filename' in json:
-            sequence.metadata_url = json['meta_data_filename']
-        if 'photos' in json:
-            photos = []
-            photos_json = json['photos']
-            for photo_json in photos_json:
-                photo = OSCPhoto.photo_from_json(photo_json)
-                photos.append(photo)
-            sequence.photos = photos
-
-        return sequence
-
-    def __eq__(self, other):
-        if isinstance(other, OSCSequence):
-            return self.local_id == other.local_id and self.online_id == other.online_is
-        return False
-
-    def __hash__(self):
-        return hash(self.local_id, self.online_id)
-
-    def location(self) -> str:
-        """this method returns the string representation of a OSCSequence location"""
-        if self.photos:
-            photo = self.photos[0]
-            return str(photo.latitude) + "," + str(photo.longitude)
-        return ""
 
 
 class OSCApi:
     """This class is a gateway for the API"""
 
-    def __init__(self, env: OSCAPIEnvironment):
+    def __init__(self, env: OSCAPISubDomain):
         self.environment = env
 
     @classmethod
@@ -239,7 +122,7 @@ class OSCApi:
             parameters = {'ipp': 100,
                           'page': page,
                           'username': user_name}
-            login_url = OSCApiMethods.user_sequences(self.environment.value)
+            login_url = OSCApiMethods.user_sequences(self.environment)
             response = requests.post(url=login_url, data=parameters)
             json_response = response.json()
 
@@ -260,7 +143,7 @@ class OSCApi:
             data_access = {'request_token': token,
                            'secret_token': secret
                            }
-            login_url = OSCApiMethods.login(self.environment.value, provider)
+            login_url = OSCApiMethods.login(self.environment, provider)
             response = requests.post(url=login_url, data=data_access)
             json_response = response.json()
 
@@ -303,7 +186,7 @@ class OSCApi:
         """this method will return a list of photo objects for a sequence id"""
         try:
             parameters = {'sequenceId': sequence_id}
-            login_url = OSCApiMethods.photo_list(self.environment.value)
+            login_url = OSCApiMethods.photo_list(self.environment)
             response = requests.post(url=login_url, data=parameters)
             json_response = response.json()
             missing_field = None
@@ -349,7 +232,7 @@ class OSCApi:
             return None
 
         try:
-            response = requests.get(OSCApiMethods.resource(self.environment.value,
+            response = requests.get(OSCApiMethods.resource(self.environment,
                                                            photo.image_name),
                                     stream=True)
             if response.status_code == 200:
@@ -368,7 +251,7 @@ class OSCApi:
             parameters = {'ipp': 100,
                           'page': 1,
                           'username': user_name}
-            json_response = requests.post(url=OSCApiMethods.user_sequences(self.environment.value),
+            json_response = requests.post(url=OSCApiMethods.user_sequences(self.environment),
                                           data=parameters).json()
 
             if 'totalFilteredItems' not in json_response:
@@ -411,7 +294,7 @@ class OSCApi:
         try:
             parameters = {'id': sequence_id
                           }
-            response = requests.post(OSCApiMethods.sequence_details(self.environment.value),
+            response = requests.post(OSCApiMethods.sequence_details(self.environment),
                                      data=parameters)
             json_response = response.json()
             if 'osv' in json_response:
@@ -427,7 +310,7 @@ class OSCApi:
     def sequence_link(self, sequence) -> str:
         """This method will return a link to OSC website page displaying the sequence
         sent as parameter"""
-        return _website(OSCApiMethods.sequence_details(self.environment.value)) + \
+        return _website(OSCApiMethods.sequence_details(self.environment)) + \
                "/" + str(sequence.online_id)
 
     def download_metadata(self, sequence: OSCSequence, path: str, override=False):
@@ -440,7 +323,7 @@ class OSCApi:
             return None
 
         try:
-            response = requests.get(OSCApiMethods.resource(self.environment.value,
+            response = requests.get(OSCApiMethods.resource(self.environment,
                                                            sequence.metadata_url),
                                     stream=True)
             if response.status_code == 200:
@@ -460,11 +343,11 @@ class OSCApi:
                           'access_token': token,
                           'currentCoordinate': sequence.location()
                           }
-            url = OSCApiMethods.sequence_create(self.environment.value)
+            url = OSCApiMethods.sequence_create(self.environment)
             if sequence.metadata_url:
                 load_data = {'metaData': (constants.METADATA_NAME,
-                                       open(sequence.metadata_url, 'rb'),
-                                       'text/plain')}
+                                          open(sequence.metadata_url, 'rb'),
+                                          'text/plain')}
                 response = requests.post(url,
                                          data=parameters,
                                          files=load_data)
@@ -487,7 +370,7 @@ class OSCApi:
         try:
             parameters = {'sequenceId': sequence.online_id,
                           'access_token': token}
-            response = requests.post(OSCApiMethods.finish_upload(self.environment.value),
+            response = requests.post(OSCApiMethods.finish_upload(self.environment),
                                      data=parameters)
             json_response = response.json()
             if "status" not in json_response:
@@ -509,8 +392,10 @@ class OSCApi:
                           'sequenceId': sequence_id,
                           'sequenceIndex': video_index
                           }
-            load_data = {'video': (video_path, open(video_path, 'rb'), 'video/mp4')}
-            video_upload_url = OSCApiMethods.video_upload(self.environment.value)
+            load_data = {'video': (os.path.basename(video_path),
+                                   open(video_path, 'rb'),
+                                   'video/mp4')}
+            video_upload_url = OSCApiMethods.video_upload(self.environment)
             response = requests.post(video_upload_url,
                                      data=parameters,
                                      files=load_data,
@@ -534,8 +419,8 @@ class OSCApi:
             if photo.compass:
                 parameters["headers"] = photo.compass
 
-            photo_upload_url = OSCApiMethods.photo_upload(self.environment.value)
-            load_data = {'photo': (photo.image_name,
+            photo_upload_url = OSCApiMethods.photo_upload(self.environment)
+            load_data = {'photo': (os.path.basename(photo.image_name),
                                    open(photo_path, 'rb'),
                                    'image/jpeg')}
             response = requests.post(photo_upload_url,

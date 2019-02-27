@@ -7,7 +7,7 @@ import logging
 from osm_access import osm_auth
 from osc_api_gateway import OSCApi
 from osc_api_gateway import OSCUser
-from osc_api_gateway import OSCAPIEnvironment
+from osc_api_gateway import OSCAPISubDomain
 
 # constants
 CREDENTIALS_FILE = "credentials.json"
@@ -28,18 +28,18 @@ LOGGER = logging.getLogger('osc_tools.logging_controller')
 class LoginController:
     """This class will enable """
 
-    def __init__(self, env: OSCAPIEnvironment):
-        self.osc_api = OSCApi(env)
+    def __init__(self, sub_domain: OSCAPISubDomain):
+        self.osc_api = OSCApi(sub_domain)
         self.handle_retry_count = 0
         self.user: OSCUser = None
         self.osm_token = ""
         self.osm_token_secret = ""
 
-        osm_token, osm_token_secret, osc_user, environment = self.__read_persistent_login()
+        osm_token, osm_token_secret, osc_user, env = self.__read_persistent_login()
         self.osm_token = osm_token
         self.osm_token_secret = osm_token_secret
-        LOGGER.debug("Current environment: %s Cached environment: %s", str(env), str(environment))
-        if environment == env:
+        LOGGER.debug("Current environment: %s Cached environment: %s", str(sub_domain), str(env))
+        if env == sub_domain:
             LOGGER.debug("Same environment detected")
             self.user = osc_user
 
@@ -160,13 +160,13 @@ class LoginController:
             LOGGER.debug("Did write data to credentials file")
 
     @classmethod
-    def __read_persistent_login(cls) -> (str, str, OSCUser, OSCAPIEnvironment):
+    def __read_persistent_login(cls) -> (str, str, OSCUser, OSCAPISubDomain):
         LOGGER.debug("will read credentials file")
         try:
             with open(CREDENTIALS_FILE) as json_file:
                 data = json.load(json_file)
                 osc_user: OSCUser = None
-                environment: OSCAPIEnvironment = None
+                environment: OSCAPISubDomain = None
                 if OSC_KEY in data:
                     osc_data = data[OSC_KEY]
                     if USER_NAME_KEY in osc_data and \
@@ -180,7 +180,7 @@ class LoginController:
                         osc_user.name = osc_data[USER_NAME_KEY]
                         osc_user.full_name = osc_data[USER_FULL_NAME_KEY]
                         osc_user.access_token = osc_data[TOKEN_KEY]
-                        environment = OSCAPIEnvironment(osc_data[OSC_ENV_KEY])
+                        environment = OSCAPISubDomain(osc_data[OSC_ENV_KEY])
 
                 osm_token = ""
                 osm_token_secret = ""

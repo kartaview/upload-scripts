@@ -11,7 +11,7 @@ import constants
 from osc_discoverer import Sequence
 from visual_data_discover import Photo, Video
 from login_controller import LoginController
-from osc_api_gateway import OSCPhoto, OSCSequence
+from osc_api_models import OSCPhoto, OSCSequence
 
 LOGGER = logging.getLogger('osc_uploader')
 THREAD_LOCK = threading.Lock()

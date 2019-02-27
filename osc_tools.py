@@ -5,7 +5,7 @@ import logging
 import os
 from argparse import ArgumentParser, RawTextHelpFormatter, SUPPRESS
 from login_controller import LoginController
-from osc_api_gateway import OSCAPIEnvironment
+from osc_api_config import OSCAPISubDomain
 from osc_uploader import OSCUploadManager
 from osc_utils import create_exif_from_metadata
 from osc_discoverer import SequenceDiscovererFactory
@@ -26,19 +26,19 @@ def configure_login(args) -> LoginController:
     """Method to configure upload environment"""
     if args.env == 'p':
         LOGGER.debug("environment production")
-        controller = LoginController(OSCAPIEnvironment.PRODUCTION)
+        controller = LoginController(OSCAPISubDomain.PRODUCTION)
     elif args.env == 't':
         LOGGER.debug("environment testing")
-        controller = LoginController(OSCAPIEnvironment.TESTING)
+        controller = LoginController(OSCAPISubDomain.TESTING)
     elif args.env == 's':
         LOGGER.debug("environment staging")
-        controller = LoginController(OSCAPIEnvironment.STAGING)
+        controller = LoginController(OSCAPISubDomain.STAGING)
     elif args.env == 'b':
         LOGGER.debug("environment beta")
-        controller = LoginController(OSCAPIEnvironment.BETA)
+        controller = LoginController(OSCAPISubDomain.BETA)
     else:
         LOGGER.debug("environment default production")
-        controller = LoginController(OSCAPIEnvironment.PRODUCTION)
+        controller = LoginController(OSCAPISubDomain.PRODUCTION)
     return controller
 
 
