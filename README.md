@@ -6,7 +6,7 @@
 Tools developed by [OpenStreetCam](https://openstreetcam.org/) to help contributors.
 
 ##### Requirements
-* Python 3  
+* Python 3.6+
 * Dependencies from _requirements.txt_ file.
 The dependencies can be installed by running:
 ```
