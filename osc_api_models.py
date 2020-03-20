@@ -106,7 +106,11 @@ class OSCSequence:
 
     def location(self) -> str:
         """this method returns the string representation of a OSCSequence location"""
+        if self.latitude is not None and self.longitude is not None:
+            return str(self.latitude) + "," + str(self.longitude)
+
         if self.photos:
             photo = self.photos[0]
             return str(photo.latitude) + "," + str(photo.longitude)
         return ""
+
