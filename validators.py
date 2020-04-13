@@ -3,8 +3,8 @@
 import logging
 import constants
 from metadata_manager import MetadataManager, MetadataParser
-from metadata_parser import Photo
-from osc_models import Sequence, Video
+from metadata_parser import Photo as MetadataPhoto
+from osc_models import Sequence, Video, Photo
 
 
 LOGGER = logging.getLogger('osc_tools.validators')
@@ -55,7 +55,7 @@ class SequenceMetadataValidator(SequenceValidator):
         return super().__hash__()
 
     def validate(self, sequence: Sequence) -> bool:
-        """This method returns is a bool, If it returns True the sequence is valid if returns
+        """This method return is a bool, If it returns True the sequence is valid if returns
                 False the sequence is not valid and it is not usable for OSC servers.
                 """
         if not super().validate(sequence):
@@ -65,7 +65,7 @@ class SequenceMetadataValidator(SequenceValidator):
             metadata_path = sequence.osc_metadata
             LOGGER.debug("        Validating Metadata %s", metadata_path)
             parser: MetadataParser = self.metadata_manager.get_metadata_parser(metadata_path)
-            photo_item = parser.next_item_with_class(Photo)
+            photo_item = parser.next_item_with_class(MetadataPhoto)
             if not photo_item:
                 LOGGER.debug(" No photo in metadata")
                 return False
@@ -76,7 +76,6 @@ class SequenceMetadataValidator(SequenceValidator):
                 if recording_type == "video" and not isinstance(visual_item, Video):
                     return False
                 if recording_type == "photo" and not isinstance(visual_item, Photo):
-
                     return False
         return True
 
