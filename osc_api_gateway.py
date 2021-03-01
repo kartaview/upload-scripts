@@ -107,14 +107,18 @@ class OSCApi:
         if response is None:
             return False
         if response.status_code != 200:
-            json_response = response.json()
-            if "status" in json_response and \
-                    "apiMessage" in json_response["status"] and \
-                    "duplicate entry" in json_response["status"]["apiMessage"]:
-                LOGGER.debug("Received duplicate %s index: %d", upload_type, index)
-                return True
-            LOGGER.debug("Failed to upload %s index: %d", upload_type, index)
-            return False
+            try:
+                json_response = response.json()
+                if "status" in json_response and \
+                        "apiMessage" in json_response["status"] and \
+                        "duplicate entry" in json_response["status"]["apiMessage"]:
+                    LOGGER.debug("Received duplicate %s index: %d", upload_type, index)
+                    return True
+                LOGGER.debug("Failed to upload %s index: %d", upload_type, index)
+                return False
+            except Exception as ex:
+                LOGGER.info("Failed to upload %s index: %d, response: %s", upload_type, index, response.text)
+                return False
         return True
 
     def _sequence_page(self, user_name, page) -> ([OSCSequence], Exception):
