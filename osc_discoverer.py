@@ -35,7 +35,7 @@ class OSCUploadProgressDiscoverer:
             return []
         with open(progress_file_path, 'r') as input_file:
             line = input_file.readline()
-            indexes = line.split(";")
+            indexes = list(filter(None, line.split(";")))
             return indexes
 
 
