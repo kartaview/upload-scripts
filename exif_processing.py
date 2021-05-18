@@ -6,6 +6,7 @@ from typing import Optional
 # third party
 import exifread
 import piexif
+import exiftool
 
 MPH_TO_KMH_FACTOR = 1.60934
 """miles per hour to kilometers per hour conversion factor"""
@@ -83,6 +84,15 @@ def all_tags(path) -> {str: str}:
     file = open(path, "rb")
     tags = exifread.process_file(file, details=False)
     return tags
+
+
+def video_tags(path) -> {str: str}:
+    """Method to return video's Exif tags"""
+    with exiftool.ExifTool() as et:
+        metadata = et.get_metadata(path)
+        if not metadata:
+            return {} 
+        return metadata
 
 
 def __dms_to_dd(dms_value) -> float:

@@ -77,6 +77,17 @@ class Photo(VisualData):
 
 class Video(VisualData):
     """Video is a VisualData model for a video item"""
+
+    def __init__(self, path):
+        super().__init__(path)
+        self.latitude: float = None
+        self.longitude: float = None
+        self.exif_timestamp: float = None
+        self.gps_timestamp: float = None
+        self.gps_speed: float = None
+        self.gps_altitude: float = None
+        self.gps_compass: float = None
+
     def __eq__(self, other):
         if isinstance(other, Video):
             return self.path == other.path and self.index == other.index

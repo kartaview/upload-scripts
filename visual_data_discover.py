@@ -5,6 +5,7 @@ import os
 import logging
 import exif_processing
 import constants
+import time 
 from metadata_manager import MetadataManager
 from osc_models import VisualData, Photo, Video
 from metadata_models import Photo as MetadataPhoto
@@ -151,7 +152,33 @@ class VideoDiscoverer(VisualDataDiscoverer):
         for file_path in files:
             _, file_extension = os.path.splitext(file_path)
             if "mp4" in file_extension:
-                video = Video(os.path.join(path, file_path))
+                video_path = os.path.abspath(os.path.join(path, file_path))
+                video = Video(video_path)
+
+                tags_data = exif_processing.video_tags(video.path)
+
+                # required gps timestamp or exif timestamp
+                # FIXME: Use correct gps timestamp
+                video.gps_timestamp = time.time() 
+                video.exif_timestamp = time.time() 
+
+                if not video.gps_timestamp and video.exif_timestamp:
+                    video.gps_timestamp = video.exif_timestamp
+
+                # required latitude and longitude
+                video.latitude = tags_data['Composite:GPSLatitude']
+                video.longitude = tags_data['Composite:GPSLongitude'] 
+                if not video.latitude or \
+                        not video.longitude or \
+                        not video.gps_timestamp:
+                    return None
+
+                # optional data
+                video.gps_speed = exif_processing.gps_speed(tags_data)
+                video.gps_altitude = exif_processing.gps_altitude(tags_data)
+                video.gps_compass = exif_processing.gps_compass(tags_data)
+                LOGGER.debug("lat/lon: %f/%f", video.latitude, video.longitude)
+
                 videos.append(video)
         cls._sort_list(videos)
         index = 0

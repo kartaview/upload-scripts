@@ -10,7 +10,7 @@ from visual_data_discover import PhotoMetadataDiscoverer
 from visual_data_discover import VideoDiscoverer
 from validators import SequenceValidator, SequenceMetadataValidator, SequenceFinishedValidator
 from osc_utils import unzip_metadata
-from osc_models import Sequence, Photo
+from osc_models import Sequence, Photo, Video
 
 
 LOGGER = logging.getLogger('osc_tools.osc_discoverer')
@@ -148,7 +148,7 @@ class SequenceDiscoverer:
                     sequence.longitude = gps.longitude
             elif sequence.visual_items:
                 visual_item = sequence.visual_items[0]
-                if isinstance(visual_item, Photo):
+                if isinstance(visual_item, Photo) or isinstance(visual_item, Video):
                     sequence.latitude = visual_item.latitude
                     sequence.longitude = visual_item.longitude
 

@@ -4,3 +4,4 @@ ExifRead==2.1.2
 tqdm==4.29.1
 piexif==1.1.2
 pycodestyle==2.5.0
+PyExifTool==0.4.7
