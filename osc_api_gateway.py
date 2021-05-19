@@ -1,9 +1,13 @@
 """This module is used as a gateway to the OSC api."""
 import asyncio
 import concurrent.futures
+import datetime
+import hashlib
 import os.path
 import shutil
 import logging
+from typing import Tuple, Optional, List
+
 import requests
 import constants
 import osc_api_config
@@ -78,15 +82,14 @@ class OSCApiMethods:
         return _upload_url(env, 'photo')
 
     @classmethod
-    def login(cls, env: OSCAPISubDomain, provider: str) -> str:
+    def login(cls, env: OSCAPISubDomain, provider: str) -> Optional[str]:
         """this method returns login URL"""
-        if provider == "osm":
-            return _osc_url(env) + '/auth/openstreetmap/client_auth'
         if provider == "google":
             return _osc_url(env) + '/auth/google/client_auth'
         if provider == "facebook":
             return _osc_url(env) + '/auth/facebook/client_auth'
-        return None
+        # default to OSM
+        return _osc_url(env) + '/auth/openstreetmap/client_auth'
 
     @classmethod
     def finish_upload(cls, env: OSCAPISubDomain) -> str:
@@ -103,21 +106,40 @@ class OSCApi:
     @classmethod
     def __upload_response_success(cls, response: requests.Response,
                                   upload_type: str,
-                                  index: int) -> bool:
+                                  index: int,
+                                  sequence_id: int) -> bool:
         if response is None:
             return False
-        if response.status_code != 200:
-            json_response = response.json()
-            if "status" in json_response and \
-                    "apiMessage" in json_response["status"] and \
-                    "duplicate entry" in json_response["status"]["apiMessage"]:
-                LOGGER.debug("Received duplicate %s index: %d", upload_type, index)
-                return True
-            LOGGER.debug("Failed to upload %s index: %d", upload_type, index)
-            return False
-        return True
+        try:
+            if response.status_code != 200:
+                json_response = response.json()
+                if "status" in json_response and \
+                        "apiMessage" in json_response["status"] and \
+                        "duplicate entry" in json_response["status"]["apiMessage"]:
+                    LOGGER.debug("Received duplicate %s index: %d, photo_id %s sequence_id %s",
+                                 upload_type,
+                                 index,
+                                 None,
+                                 sequence_id)
+                    return True
+                LOGGER.debug("Failed to upload %s index: %d response:%s sequence_id %s",
+                             upload_type,
+                             index,
+                             json_response,
+                             sequence_id)
+                return False
 
-    def _sequence_page(self, user_name, page) -> ([OSCSequence], Exception):
+            json_response = response.json()
+            if "osv" in json_response:
+                if "photo" in json_response["osv"] and "id" in json_response["osv"]["photo"]:
+                    return True
+                elif "video" in json_response["osv"] and "id" in json_response["osv"]["video"]:
+                    return True
+        except ValueError:
+            return False
+        return False
+
+    def _sequence_page(self, user_name, page) -> Tuple[List[OSCSequence], Exception]:
         try:
             parameters = {'ipp': 100,
                           'page': page,
@@ -137,7 +159,7 @@ class OSCApi:
         except requests.RequestException as ex:
             return None, ex
 
-    def authorized_user(self, provider: str, token: str, secret: str) -> (OSCUser, Exception):
+    def authorized_user(self, provider: str, token: str, secret: str) -> Tuple[OSCUser, Exception]:
         """This method will get a authorization token for OSC API"""
         try:
             data_access = {'request_token': token,
@@ -182,7 +204,7 @@ class OSCApi:
 
         return user, None
 
-    def get_photos(self, sequence_id: int) -> ([OSCPhoto], Exception):
+    def get_photos(self, sequence_id: int) -> Tuple[List[OSCPhoto], Exception]:
         """this method will return a list of photo objects for a sequence id"""
         try:
             parameters = {'sequenceId': sequence_id}
@@ -225,7 +247,7 @@ class OSCApi:
             loop.run_until_complete(asyncio.gather(*futures))
             loop.close()
 
-    def get_image(self, photo: OSCPhoto, path: str, override=False) -> Exception:
+    def get_image(self, photo: OSCPhoto, path: str, override=False) -> Optional[Exception]:
         """downloads the image at the path specified"""
         jpg_name = path + '/' + str(photo.sequence_index) + '.jpg'
         if not override and os.path.isfile(jpg_name):
@@ -241,10 +263,9 @@ class OSCApi:
                     shutil.copyfileobj(response.raw, file)
         except requests.RequestException as ex:
             return ex
-
         return None
 
-    def user_sequences(self, user_name: str) -> ([OSCSequence], Exception):
+    def user_sequences(self, user_name: str) -> Tuple[List[OSCSequence], Exception]:
         """get all tracks for a user id """
         LOGGER.debug("getting all sequences for user: %s", user_name)
         try:
@@ -289,29 +310,10 @@ class OSCApi:
         except requests.RequestException as ex:
             return None, ex
 
-    def sequence_details(self, sequence_id: str) -> OSCSequence:
-        """method that returns the details of a sequence from OSC API"""
-        try:
-            parameters = {'id': sequence_id
-                          }
-            response = requests.post(OSCApiMethods.sequence_details(self.environment),
-                                     data=parameters)
-            json_response = response.json()
-            if 'osv' in json_response:
-                osc_data = json_response['osv']
-                sequence = OSCSequence.sequence_from_json(osc_data)
-                sequence.online_id = sequence_id
-                return sequence
-        except requests.RequestException as ex:
-            return ex
-
-        return None
-
     def sequence_link(self, sequence) -> str:
         """This method will return a link to OSC website page displaying the sequence
         sent as parameter"""
-        return _website(OSCApiMethods.sequence_details(self.environment)) + \
-               "/" + str(sequence.online_id)
+        return _website(OSCApiMethods.sequence_details(self.environment)) + "/" + str(sequence.online_id)
 
     def download_metadata(self, sequence: OSCSequence, path: str, override=False):
         """this method will download a metadata file of a sequence to the specified path.
@@ -335,14 +337,20 @@ class OSCApi:
 
         return None
 
-    def create_sequence(self, sequence: OSCSequence, token: str) -> (int, Exception):
+    def create_sequence(self, sequence: OSCSequence, token: str) -> Tuple[int, Exception]:
         """this method will create a online sequence from the current sequence and will return its
         id as a integer or a exception if fail"""
         try:
-            parameters = {'uploadSource': 'Python',
+            parameters = {'uploadSource': 'kv_tools-0.1.0',
                           'access_token': token,
                           'currentCoordinate': sequence.location()
                           }
+            if sequence.platform is not None:
+                parameters['platformName'] = sequence.platform
+
+            if sequence.device is not None:
+                parameters['deviceName'] = sequence.device
+
             url = OSCApiMethods.sequence_create(self.environment)
             if sequence.metadata_url:
                 load_data = {'metaData': (constants.METADATA_NAME,
@@ -364,7 +372,7 @@ class OSCApi:
 
         return None, None
 
-    def finish_upload(self, sequence: OSCSequence, token: str) -> (bool, Exception):
+    def finish_upload(self, sequence: OSCSequence, token: str) -> Tuple[Optional[bool], Optional[Exception]]:
         """this method must be called in order to signal that a sequence has no more data to be
         uploaded."""
         try:
@@ -380,12 +388,10 @@ class OSCApi:
         except requests.RequestException as ex:
             return None, ex
 
-        return None, None
-
     def upload_video(self, access_token,
                      sequence_id,
                      video_path: str,
-                     video_index) -> (bool, Exception):
+                     video_index) -> Tuple[bool, Exception]:
         """This method will upload a video to OSC API"""
         try:
             parameters = {'access_token': access_token,
@@ -400,7 +406,7 @@ class OSCApi:
                                      data=parameters,
                                      files=load_data,
                                      timeout=100)
-            return OSCApi.__upload_response_success(response, "video", video_index), None
+            return OSCApi.__upload_response_success(response, "video", video_index, sequence_id), None
         except requests.RequestException as ex:
             LOGGER.debug("Received exception on video upload %s", str(ex))
             return False, ex
@@ -408,26 +414,47 @@ class OSCApi:
     def upload_photo(self, access_token,
                      sequence_id,
                      photo: OSCPhoto,
-                     photo_path: str) -> (bool, Exception):
+                     photo_path: str,
+                     fov=None,
+                     projection=None) -> Tuple[bool, Optional[Exception]]:
         """This method will upload a photo to OSC API"""
+        LOGGER.debug("uploading photo %s, sequence id %s", photo_path, sequence_id)
         try:
+            shot_date = datetime.datetime.utcfromtimestamp(photo.timestamp)
+            shot_date_string = shot_date.strftime('%Y-%m-%d %H:%M:%S')
             parameters = {'access_token': access_token,
                           'coordinate': str(photo.latitude) + "," + str(photo.longitude),
                           'sequenceId': sequence_id,
-                          'sequenceIndex': photo.sequence_index
+                          'sequenceIndex': photo.sequence_index,
+                          'shotDate': shot_date_string
                           }
             if photo.compass:
                 parameters["headers"] = photo.compass
 
+            if fov is not None and projection is not None:
+                parameters['projection'] = projection
+                parameters['fieldOfView'] = fov
+
+            if photo.yaw is not None:
+                parameters["projectionYaw"] = photo.yaw
+
             photo_upload_url = OSCApiMethods.photo_upload(self.environment)
-            load_data = {'photo': (os.path.basename(photo.image_name),
-                                   open(photo_path, 'rb'),
-                                   'image/jpeg')}
-            response = requests.post(photo_upload_url,
-                                     data=parameters,
-                                     files=load_data,
-                                     timeout=100)
-            return OSCApi.__upload_response_success(response, "photo", photo.sequence_index), None
+            name = str(hashlib.md5(os.path.basename(photo.image_name).encode()).hexdigest())
+            extension = os.path.split(photo.image_name)[1]
+            name += extension
+            with open(photo_path, 'rb') as image_file:
+                load_data = {'photo': (name,
+                                       image_file,
+                                       'image/jpeg')}
+                response = requests.post(photo_upload_url,
+                                         data=parameters,
+                                         files=load_data,
+                                         timeout=100)
+            success = self.__upload_response_success(response,
+                                                     "photo",
+                                                     photo.sequence_index,
+                                                     sequence_id)
+            return success, None
         except requests.RequestException as ex:
             LOGGER.debug("Received exception on photo upload %s", str(ex))
             return False, ex

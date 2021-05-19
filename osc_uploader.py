@@ -5,9 +5,12 @@ import json
 import threading
 from concurrent.futures import as_completed, ThreadPoolExecutor
 # third party
+from typing import List
+
 from tqdm import tqdm
 # local imports
 import constants
+from common.models import CameraProjection
 from osc_discoverer import Sequence
 from visual_data_discover import Photo, Video
 from login_controller import LoginController
@@ -22,7 +25,7 @@ class OSCUploadManager:
     sequences received as input"""
     def __init__(self, login_controller: LoginController, max_workers: int = 10):
         self.progress_bar: tqdm = None
-        self.sequences: [Sequence] = []
+        self.sequences: List[Sequence] = []
         self.visual_data_count = 0
         self.login_controller: LoginController = login_controller
         self.max_workers = max_workers
@@ -82,7 +85,7 @@ class SequenceUploadOperation:
         return False
 
     def __hash__(self):
-        return hash(self.user_token, self.workers)
+        return hash((self.user_token, self.workers))
 
     def upload(self, sequence: Sequence) -> (bool, Sequence):
         """"This method will upload a sequence of video items to OSC servers.
@@ -120,12 +123,14 @@ class SequenceUploadOperation:
         osc_sequence.metadata_url = sequence.osc_metadata
         osc_sequence.latitude = sequence.latitude
         osc_sequence.longitude = sequence.longitude
+        osc_sequence.platform = sequence.platform
+        osc_sequence.device = sequence.device
         osc_api = self.manager.login_controller.osc_api
         online_id, error = osc_api.create_sequence(osc_sequence, self.user_token)
         sequence.online_id = online_id
         if error:
             return False, online_id
-        self.__persist_squence_id(sequence.online_id, sequence.path)
+        self.__persist_sequence_id(sequence.online_id, sequence.path)
         return True, online_id
 
     def _visual_items_upload_with_operation(self, sequence, visual_item_upload_operation):
@@ -149,7 +154,7 @@ class SequenceUploadOperation:
                     self.manager.progress_bar.update(1)
 
     @classmethod
-    def __persist_squence_id(cls, sequence_id, path):
+    def __persist_sequence_id(cls, sequence_id, path):
         LOGGER.debug("will save sequence_id into file")
         sequence_dict = {"id": sequence_id}
         with open(path + "/osc_sequence_id.txt", 'w') as output:
@@ -177,7 +182,7 @@ class VideoUploadOperation:
         return False
 
     def __hash__(self):
-        return hash(self.user_token, self.sequence_id)
+        return hash((self.user_token, self.sequence_id))
 
     def upload(self, video: Video) -> (bool, int):
         """This method will upload the video corresponding to the video model
@@ -212,7 +217,7 @@ class PhotoUploadOperation:
         return False
 
     def __hash__(self):
-        return hash(self.user_token, self.sequence_id)
+        return hash((self.user_token, self.sequence_id))
 
     def upload(self, photo: Photo) -> (bool, int):
         """This method will upload the image corresponding to the photo model
@@ -220,18 +225,25 @@ class PhotoUploadOperation:
         user = self.manager.login_controller.user
         api = self.manager.login_controller.osc_api
         osc_photo = OSCPhoto()
+        osc_photo.timestamp = photo.gps_timestamp
         osc_photo.image_name = str(photo.index) + ".jpg"
         osc_photo.latitude = photo.latitude
         osc_photo.longitude = photo.longitude
         osc_photo.compass = photo.gps_compass
         osc_photo.sequence_index = photo.index
 
+        projection = "PLAIN"
+        if photo.projection == CameraProjection.EQUIRECTANGULAR:
+            projection = "SPHERE"
+
         uploaded = False
         for _ in range(0, 10):
             uploaded, _ = api.upload_photo(user.access_token,
                                            self.sequence_id,
                                            osc_photo,
-                                           photo.path)
+                                           photo.path,
+                                           photo.fov,
+                                           projection)
             if uploaded:
                 break
             LOGGER.debug("Will request upload %s", photo.path)

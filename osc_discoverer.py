@@ -4,14 +4,17 @@ import os
 import json
 import logging
 import constants
+from common.models import GPS, OSCDevice
+from io_storage.storage import Local
+from parsers.exif import ExifParser
+from parsers.osc_metadata.parser import MetadataParser
 from visual_data_discover import VisualDataDiscoverer
 from visual_data_discover import ExifPhotoDiscoverer
 from visual_data_discover import PhotoMetadataDiscoverer
 from visual_data_discover import VideoDiscoverer
 from validators import SequenceValidator, SequenceMetadataValidator, SequenceFinishedValidator
 from osc_utils import unzip_metadata
-from osc_models import Sequence, Photo
-
+from osc_models import Sequence, Photo, VisualData
 
 LOGGER = logging.getLogger('osc_tools.osc_discoverer')
 
@@ -135,19 +138,30 @@ class SequenceDiscoverer:
         if self.upload_progress:
             sequence.progress = self.upload_progress.discover(path)
         sequence.path = path
-        self._find_latitude_longitude(sequence)
+        self._find_latitude_longitude_device_info(sequence)
 
         return sequence
 
-    def _find_latitude_longitude(self, sequence: Sequence):
+    def _find_latitude_longitude_device_info(self, sequence: Sequence):
         if not sequence.online_id:
             if sequence.osc_metadata and isinstance(self.validator, SequenceMetadataValidator):
-                gps = self.validator.metadata_manager.first_location(sequence.osc_metadata)
+                parser = MetadataParser.valid_parser(sequence.osc_metadata, Local())
+                gps = parser.next_item_with_class(GPS)
                 if gps:
                     sequence.latitude = gps.latitude
                     sequence.longitude = gps.longitude
+                device_info: OSCDevice = parser.next_item_with_class(OSCDevice)
+                if device_info:
+                    sequence.device = device_info.device_raw_name
+                    sequence.platform = device_info.platform_name
             elif sequence.visual_items:
-                visual_item = sequence.visual_items[0]
+                visual_item: VisualData = sequence.visual_items[0]
+                if isinstance(self.visual_data, ExifPhotoDiscoverer):
+                    parser = ExifParser.valid_parser(visual_item.path, Local())
+                    device_info: OSCDevice = parser.next_item_with_class(OSCDevice)
+                    if device_info:
+                        sequence.device = device_info.device_raw_name
+                        sequence.platform = device_info.platform_name
                 if isinstance(visual_item, Photo):
                     sequence.latitude = visual_item.latitude
                     sequence.longitude = visual_item.longitude

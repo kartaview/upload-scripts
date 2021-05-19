@@ -2,10 +2,10 @@
 
 import logging
 import constants
-from metadata_manager import MetadataManager, MetadataParser
-from metadata_parser import Photo as MetadataPhoto
+from common.models import PhotoMetadata, OSCDevice, RecordingType
+from io_storage.storage import Local
+from parsers.osc_metadata.parser import MetadataParser
 from osc_models import Sequence, Video, Photo
-
 
 LOGGER = logging.getLogger('osc_tools.validators')
 
@@ -43,9 +43,6 @@ class SequenceMetadataValidator(SequenceValidator):
     """SequenceMetadataValidator is a SequenceValidator responsible of validating if a sequence
     that has metadata"""
 
-    def __init__(self):
-        self.metadata_manager: MetadataManager = MetadataManager()
-
     def __eq__(self, other):
         if isinstance(other, SequenceMetadataValidator):
             return self == other
@@ -55,7 +52,7 @@ class SequenceMetadataValidator(SequenceValidator):
         return super().__hash__()
 
     def validate(self, sequence: Sequence) -> bool:
-        """This method return is a bool, If it returns True the sequence is valid if returns
+        """This method returns is a bool, If it returns True the sequence is valid if returns
                 False the sequence is not valid and it is not usable for OSC servers.
                 """
         if not super().validate(sequence):
@@ -64,18 +61,18 @@ class SequenceMetadataValidator(SequenceValidator):
         if sequence.osc_metadata and not sequence.online_id:
             metadata_path = sequence.osc_metadata
             LOGGER.debug("        Validating Metadata %s", metadata_path)
-            parser: MetadataParser = self.metadata_manager.get_metadata_parser(metadata_path)
-            photo_item = parser.next_item_with_class(MetadataPhoto)
+            parser: MetadataParser = MetadataParser.valid_parser(metadata_path, Local())
+            photo_item = parser.next_item_with_class(PhotoMetadata)
             if not photo_item:
                 LOGGER.debug(" No photo in metadata")
                 return False
-            recording_type = parser.recording_type()
+            device: OSCDevice = parser.next_item_with_class(OSCDevice)
             visual_item = sequence.visual_items[0]
 
-            if recording_type:
-                if recording_type == "video" and not isinstance(visual_item, Video):
+            if device is not None and device.recording_type is not None:
+                if device.recording_type == RecordingType.VIDEO and not isinstance(visual_item, Video):
                     return False
-                if recording_type == "photo" and not isinstance(visual_item, Photo):
+                if device.recording_type == RecordingType.PHOTO and not isinstance(visual_item, Photo):
                     return False
         return True
 

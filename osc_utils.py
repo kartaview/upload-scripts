@@ -3,10 +3,12 @@ import logging
 import os
 import gzip
 import shutil
-import exif_processing
-from metadata_manager import MetadataManager
+
+from io_storage.storage import Local
+from parsers.exif import create_required_gps_tags, add_optional_gps_tags, add_gps_tags
+from parsers.osc_metadata.parser import MetadataParser
 from osc_models import Photo
-from metadata_parser import Photo as MetadataPhoto
+from common.models import PhotoMetadata
 import constants
 
 LOGGER = logging.getLogger('osc_tools.osc_utils')
@@ -32,9 +34,9 @@ def create_exif_from_metadata(path: str):
             photos.append(photo)
         elif ".txt" in file_extension and constants.METADATA_NAME in file_path:
             metadata_file = file_path
-            parser = MetadataManager.get_metadata_parser(path + "/" + metadata_file)
+            parser = MetadataParser.valid_parser(path + "/" + metadata_file, Local())
             parser.start_new_reading()
-            metadata_photos = parser.all_photos()
+            metadata_photos = parser.items_with_class(PhotoMetadata)
 
     if metadata_photos:
         photos.sort(key=lambda x: int(os.path.splitext(os.path.basename(x.path))[0]))
@@ -44,7 +46,7 @@ def create_exif_from_metadata(path: str):
         return
 
     for photo in photos:
-        metadata_photo: MetadataPhoto = None
+        metadata_photo: PhotoMetadata = None
         for tmp_photo in metadata_photos:
             if int(tmp_photo.frame_index) == photo.index:
                 metadata_photo = tmp_photo
@@ -54,17 +56,17 @@ def create_exif_from_metadata(path: str):
         __metadata_photo_to_photo(metadata_photo, photo)
 
     for photo in photos:
-        tags = exif_processing.create_required_gps_tags(photo.gps_timestamp,
-                                                        photo.latitude,
-                                                        photo.longitude)
-        exif_processing.add_optional_gps_tags(tags,
-                                              photo.gps_speed,
-                                              photo.gps_altitude,
-                                              photo.gps_compass)
-        exif_processing.add_gps_tags(photo.path, tags)
+        tags = create_required_gps_tags(photo.gps_timestamp,
+                                        photo.latitude,
+                                        photo.longitude)
+        add_optional_gps_tags(tags,
+                              photo.gps_speed,
+                              photo.gps_altitude,
+                              photo.gps_compass)
+        add_gps_tags(photo.path, tags)
 
 
-def __metadata_photo_to_photo(metadata_photo: MetadataPhoto, photo: Photo):
+def __metadata_photo_to_photo(metadata_photo: PhotoMetadata, photo: Photo):
     if metadata_photo.gps.latitude:
         photo.latitude = float(metadata_photo.gps.latitude)
     if metadata_photo.gps.longitude:
@@ -75,8 +77,8 @@ def __metadata_photo_to_photo(metadata_photo: MetadataPhoto, photo: Photo):
         photo.gps_altitude = float(metadata_photo.gps.altitude)
     if metadata_photo.frame_index:
         photo.index = int(metadata_photo.frame_index)
-    if metadata_photo.timestamp:
-        photo.gps_timestamp = float(metadata_photo.timestamp)
+    if metadata_photo.gps.timestamp:
+        photo.gps_timestamp = float(metadata_photo.gps.timestamp)
 
 
 def unzip_metadata(path: str) -> str:
