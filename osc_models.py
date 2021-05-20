@@ -1,4 +1,5 @@
 """osc_models module contains all the application level models"""
+from typing import Optional
 
 
 class Sequence:
@@ -13,6 +14,8 @@ class Sequence:
         self.visual_data_type: str = ""
         self.latitude: float = None
         self.longitude: float = None
+        self.platform: Optional[str] = None
+        self.device: Optional[str] = None
 
     @property
     def description(self) -> str:
@@ -46,7 +49,7 @@ class VisualData:
         return False
 
     def __hash__(self):
-        return hash(self.path, self.index)
+        return hash((self.path, self.index))
 
 
 class Photo(VisualData):
@@ -61,6 +64,8 @@ class Photo(VisualData):
         self.gps_speed: float = None
         self.gps_altitude: float = None
         self.gps_compass: float = None
+        self.fov: Optional[float] = None
+        self.projection: str = None
 
     def __eq__(self, other):
         if isinstance(other, Photo):
@@ -70,9 +75,9 @@ class Photo(VisualData):
         return False
 
     def __hash__(self):
-        return hash(self.gps_timestamp,
+        return hash((self.gps_timestamp,
                     self.latitude,
-                    self.longitude)
+                    self.longitude))
 
 
 class Video(VisualData):
@@ -83,4 +88,4 @@ class Video(VisualData):
         return False
 
     def __hash__(self):
-        return hash(self.path,self.index)
+        return hash((self.path, self.index))

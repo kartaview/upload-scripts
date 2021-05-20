@@ -3,11 +3,15 @@
 
 import os
 import logging
-import exif_processing
+from typing import Optional
+
 import constants
-from metadata_manager import MetadataManager
+from io_storage.storage import Local
+from parsers.osc_metadata.parser import MetadataParser
+from parsers.exif import ExifParser
 from osc_models import VisualData, Photo, Video
-from metadata_models import Photo as MetadataPhoto
+from common.models import PhotoMetadata, CameraParameters
+from parsers.xmp import XMPParser
 
 LOGGER = logging.getLogger('osc_tools.visual_data_discoverer')
 
@@ -68,30 +72,43 @@ class PhotoDiscovery(VisualDataDiscoverer):
 
 class ExifPhotoDiscoverer(PhotoDiscovery):
     """This class will discover all photo files having exif data"""
-
     @classmethod
-    def _photo_from_path(cls, path) -> Photo:
+    def _photo_from_path(cls, path) -> Optional[Photo]:
         photo = Photo(path)
-        tags_data = exif_processing.all_tags(photo.path)
+        exif_parser = ExifParser.valid_parser(path, Local())
+        photo_metadata: PhotoMetadata = exif_parser.next_item_with_class(PhotoMetadata)
+
+        if photo_metadata is None:
+            return None
 
         # required gps timestamp or exif timestamp
-        photo.gps_timestamp = exif_processing.gps_timestamp(tags_data)
-        photo.exif_timestamp = exif_processing.timestamp(tags_data)
+        photo.gps_timestamp = photo_metadata.gps.timestamp
+        photo.exif_timestamp = photo_metadata.timestamp
         if not photo.gps_timestamp and photo.exif_timestamp:
             photo.gps_timestamp = photo.exif_timestamp
 
         # required latitude and longitude
-        photo.latitude = exif_processing.gps_latitude(tags_data)
-        photo.longitude = exif_processing.gps_longitude(tags_data)
+        photo.latitude = photo_metadata.gps.latitude
+        photo.longitude = photo_metadata.gps.longitude
         if not photo.latitude or \
                 not photo.longitude or \
                 not photo.gps_timestamp:
             return None
 
         # optional data
-        photo.gps_speed = exif_processing.gps_speed(tags_data)
-        photo.gps_altitude = exif_processing.gps_altitude(tags_data)
-        photo.gps_compass = exif_processing.gps_compass(tags_data)
+        photo.gps_speed = photo_metadata.gps.speed
+        photo.gps_altitude = photo_metadata.gps.altitude
+        photo.gps_compass = photo_metadata.compass.compass
+
+        try:
+            xmp_parser = XMPParser.valid_parser(path, Local())
+            camera_params: CameraParameters = xmp_parser.next_item_with_class(CameraParameters)
+            if camera_params is not None:
+                photo.fov = camera_params.h_fov
+                photo.projection = camera_params.projection
+        except Exception:
+            pass
+
         LOGGER.debug("lat/lon: %f/%f", photo.latitude, photo.longitude)
         return photo
 
@@ -107,22 +124,22 @@ class PhotoMetadataDiscoverer(PhotoDiscovery):
         photos, visual_type = super().discover(path)
         metadata_file = os.path.join(path, constants.METADATA_NAME)
         if os.path.exists(metadata_file):
-            parser = MetadataManager.get_metadata_parser(metadata_file)
+            parser = MetadataParser.valid_parser(metadata_file, Local())
             parser.start_new_reading()
-            metadata_photos = parser.all_photos()
+            metadata_photos = parser.items_with_class(PhotoMetadata)
             remove_photos = []
             for photo in photos:
                 for tmp_photo in metadata_photos:
                     if int(tmp_photo.frame_index) == photo.index:
                         metadata_photo_to_photo(tmp_photo, photo)
                         break
-                if not photo.latitude or not photo.longitude:
+                if not photo.latitude or not photo.longitude or not photo.gps_timestamp:
                     remove_photos.append(photo)
             return [x for x in photos if x not in remove_photos], visual_type
         return [], visual_type
 
 
-def metadata_photo_to_photo(metadata_photo: MetadataPhoto, photo: Photo):
+def metadata_photo_to_photo(metadata_photo: PhotoMetadata, photo: Photo):
     if metadata_photo.gps.latitude:
         photo.latitude = float(metadata_photo.gps.latitude)
     if metadata_photo.gps.longitude:

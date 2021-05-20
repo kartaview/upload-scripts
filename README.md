@@ -1,9 +1,9 @@
-![OSC](http://openstreetcam.org/assets/images/osc-logo.png)
+![KartaView](http://kartaview.org/assets/images/logo-KartaView.svg)
 
-## OSC Tools
+## KartaView Tools
 
 ##### Description
-Tools developed by [OpenStreetCam](https://openstreetcam.org/) to help contributors.
+Tools developed by [KartaView](https://kartaview.org/) to help contributors.
 
 ##### Requirements
 * Python 3.6+
@@ -19,7 +19,7 @@ source bin/activate
 pip3 install -r requirements.txt
 ```
 
-## 1. Upload photos to OpenStreetCam
+## 1. Upload photos to KartaView
 
 ##### Description
 This script is used to upload sequences from a local directory. The available formats are:
@@ -41,10 +41,10 @@ python osc_tools.py upload -p ~/OSC_seqences
 
 ```
 
-## 2. Generate Exif info from OSC metadata file
+## 2. Generate Exif info from KV metadata file
 
 ##### Description
-This script generates GPS Exif info for each image from an OSC metadata format file.
+This script generates GPS Exif info for each image from an KV metadata format file.
 
 ##### Usage
 ```
@@ -68,4 +68,4 @@ make docker
 docker run -Pit osc-up osc_tools.py
 docker run -Pit --mount type=bind,source="$(pwd)",target=/opt/osc osc-up /opt/osc/osc_tools.py
 ```
-The images directory in the repo will be available in the container at /opt/osc/images
+The 'images' directory in the repo will be available in the container at /opt/osc/images

@@ -30,6 +30,7 @@ class OSCPhoto:
     """this is a model class for a photo from OSC API"""
 
     def __init__(self):
+        self.timestamp = None
         self.latitude = None
         self.longitude = None
         self.compass = None
@@ -37,6 +38,7 @@ class OSCPhoto:
         self.photo_id = None
         self.image_name = None
         self.date_added = None
+        self.yaw = None
 
     @classmethod
     def photo_from_json(cls, json):
@@ -77,6 +79,8 @@ class OSCSequence:
         self.metadata_url = None
         self.latitude = None
         self.longitude = None
+        self.platform = None
+        self.device = None
 
     @classmethod
     def sequence_from_json(cls, json):
@@ -98,11 +102,11 @@ class OSCSequence:
 
     def __eq__(self, other):
         if isinstance(other, OSCSequence):
-            return self.local_id == other.local_id and self.online_id == other.online_is
+            return self.local_id == other.local_id and self.online_id == other.online_id
         return False
 
     def __hash__(self):
-        return hash(self.local_id, self.online_id)
+        return hash((self.local_id, self.online_id))
 
     def location(self) -> str:
         """this method returns the string representation of a OSCSequence location"""
@@ -113,4 +117,3 @@ class OSCSequence:
             photo = self.photos[0]
             return str(photo.latitude) + "," + str(photo.longitude)
         return ""
-
