@@ -46,7 +46,7 @@ class OSCUploadManager:
             total = 0
             for sequence in self.sequences:
                 total = total + len(sequence.visual_items)
-            self.progress_bar = tqdm(total=total)
+            self.progress_bar = tqdm(total=total, dynamic_ncols=True)
 
         sequence_operation = SequenceUploadOperation(self,
                                                      user.access_token,
