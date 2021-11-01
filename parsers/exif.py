@@ -342,27 +342,30 @@ def add_gps_tags(path: str, gps_tags: Dict[str, Any]):
     exif_dict = piexif.load(path)
     for tag, tag_value in gps_tags.items():
         exif_dict["GPS"][tag] = tag_value
+
     exif_bytes = piexif.dump(exif_dict)
     piexif.insert(exif_bytes, path)
 
 
-def create_required_gps_tags(timestamp_gps: float,
+def create_required_gps_tags(timestamp_gps: Optional[float],
                              latitude: float,
                              longitude: float) -> Dict[str, Any]:
     """This method will creates gps required tags """
-    exif_gps = {}
+    exif_gps: Dict[str, Any] = {}
+    if timestamp_gps is not None:
+        day = int(timestamp_gps / 86400) * 86400
+        hour = int((timestamp_gps - day) / 3600)
+        minutes = int((timestamp_gps - day - hour * 3600) / 60)
+        seconds = int(timestamp_gps - day - hour * 3600 - minutes * 60)
+
+        day_timestamp_str = datetime.date.fromtimestamp(day).strftime("%Y:%m:%d")
+        exif_gps[piexif.GPSIFD.GPSTimeStamp] = [(hour, 1),
+                                                (minutes, 1),
+                                                (seconds, 1)]
+        exif_gps[piexif.GPSIFD.GPSDateStamp] = day_timestamp_str
+
     dms_latitude = __dd_to_dms(latitude)
     dms_longitude = __dd_to_dms(longitude)
-    day = int(timestamp_gps / 86400) * 86400
-    hour = int((timestamp_gps - day) / 3600)
-    minutes = int((timestamp_gps - day - hour * 3600) / 60)
-    seconds = int(timestamp_gps - day - hour * 3600 - minutes * 60)
-
-    day_timestamp_str = datetime.date.fromtimestamp(day).strftime("%Y:%m:%d")
-    exif_gps[piexif.GPSIFD.GPSTimeStamp] = [(hour, 1),
-                                            (minutes, 1),
-                                            (seconds, 1)]
-    exif_gps[piexif.GPSIFD.GPSDateStamp] = day_timestamp_str
     exif_gps[piexif.GPSIFD.GPSLatitudeRef] = "S" if latitude < 0 else "N"
     exif_gps[piexif.GPSIFD.GPSLatitude] = dms_latitude
     exif_gps[piexif.GPSIFD.GPSLongitudeRef] = "W" if longitude < 0 else "E"
@@ -383,7 +386,7 @@ def add_optional_gps_tags(exif_gps: Dict[str, Any],
         sea_level = SeaLevel.BELOW.value if altitude < 0 else SeaLevel.ABOVE.value
         exif_gps[piexif.GPSIFD.GPSAltitudeRef] = sea_level
     if compass:
-        exif_gps[piexif.GPSIFD.GPSImgDirection] = (compass, 1)
+        exif_gps[piexif.GPSIFD.GPSImgDirection] = (int(compass), 1)
         exif_gps[piexif.GPSIFD.GPSImgDirectionRef] = CardinalDirection.TrueNorth.value
 
 
@@ -439,11 +442,11 @@ class ExifParser(BaseParser):
         return None
 
     def items(self) -> List[SensorItem]:
-        return [self._photo_item(self.tags),
-                self._gps_item(self.tags),
-                self._compass_item(self.tags),
-                self._device_item(self.tags),
-                self._exif_item(self.tags)]
+        return [item for item in [self._photo_item(self.tags),
+                                  self._gps_item(self.tags),
+                                  self._compass_item(self.tags),
+                                  self._device_item(self.tags),
+                                  self._exif_item(self.tags)] if item]
 
     def format_version(self):
         return exif_version(self.tags)
