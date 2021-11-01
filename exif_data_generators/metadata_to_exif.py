@@ -8,26 +8,12 @@ from io_storage.storage import Local
 from osc_models import Photo
 from parsers.exif import create_required_gps_tags, add_optional_gps_tags, add_gps_tags
 from parsers.osc_metadata.parser import MetadataParser
+from visual_data_discover import metadata_photo_to_photo
 
 LOGGER = logging.getLogger('osc_tools.metadata_to_exif')
 
 
 class ExifMetadataGenerator(ExifGenerator):
-
-    @classmethod
-    def __metadata_photo_to_photo(cls, metadata_photo: PhotoMetadata, photo: Photo):
-        if metadata_photo.gps.latitude:
-            photo.latitude = float(metadata_photo.gps.latitude)
-        if metadata_photo.gps.longitude:
-            photo.longitude = float(metadata_photo.gps.longitude)
-        if metadata_photo.gps.speed:
-            photo.gps_speed = round(float(metadata_photo.gps.speed) * 3.6)
-        if metadata_photo.gps.altitude:
-            photo.gps_altitude = float(metadata_photo.gps.altitude)
-        if metadata_photo.frame_index:
-            photo.index = int(metadata_photo.frame_index)
-        if metadata_photo.gps.timestamp:
-            photo.gps_timestamp = float(metadata_photo.gps.timestamp)
 
     @staticmethod
     def create_exif(path: str) -> bool:
@@ -60,20 +46,18 @@ class ExifMetadataGenerator(ExifGenerator):
 
         for photo in photos:
             for tmp_photo in metadata_photos:
-                if int(tmp_photo.frame_index) == photo.index:
-                    metadata_photo: PhotoMetadata = tmp_photo
-                    ExifMetadataGenerator.__metadata_photo_to_photo(metadata_photo, photo)
+                metadata_photo: PhotoMetadata = tmp_photo
+                if (int(tmp_photo.frame_index) == photo.index and
+                        metadata_photo.gps.latitude and metadata_photo.gps.longitude):
+                    tags = create_required_gps_tags(metadata_photo.gps.timestamp,
+                                                    metadata_photo.gps.latitude,
+                                                    metadata_photo.gps.longitude)
+                    add_optional_gps_tags(tags,
+                                          metadata_photo.gps.speed,
+                                          metadata_photo.gps.altitude,
+                                          metadata_photo.compass.compass)
+                    add_gps_tags(photo.path, tags)
                     break
-
-        for photo in photos:
-            tags = create_required_gps_tags(photo.gps_timestamp,
-                                            photo.latitude,
-                                            photo.longitude)
-            add_optional_gps_tags(tags,
-                                  photo.gps_speed,
-                                  photo.gps_altitude,
-                                  photo.gps_compass)
-            add_gps_tags(photo.path, tags)
 
         return True
 
