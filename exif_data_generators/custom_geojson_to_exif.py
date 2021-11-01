@@ -7,14 +7,14 @@ from exif_data_generators.exif_generator_interface import ExifGenerator
 from io_storage.storage import Local
 from parsers.exif import create_required_gps_tags, add_optional_gps_tags, add_gps_tags
 
-LOGGER = logging.getLogger('osc_tools.custom_geojson_to_exif')
+logger = logging.getLogger(__name__)
 
 
 class ExifCustomGeoJson(ExifGenerator):
 
     @staticmethod
     def create_exif(path: str) -> bool:
-        LOGGER.warning("Creating exif from custom geojson file %s", path)
+        logger.warning("Creating exif from custom geojson file %s", path)
         for folder_path, sub_folders, files in os.walk(path):
             for file in files:
                 file_name, file_extension = os.path.splitext(file)

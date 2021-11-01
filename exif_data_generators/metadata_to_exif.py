@@ -8,9 +8,8 @@ from io_storage.storage import Local
 from osc_models import Photo
 from parsers.exif import create_required_gps_tags, add_optional_gps_tags, add_gps_tags
 from parsers.osc_metadata.parser import MetadataParser
-from visual_data_discover import metadata_photo_to_photo
 
-LOGGER = logging.getLogger('osc_tools.metadata_to_exif')
+logger = logging.getLogger(__name__)
 
 
 class ExifMetadataGenerator(ExifGenerator):
@@ -18,7 +17,7 @@ class ExifMetadataGenerator(ExifGenerator):
     @staticmethod
     def create_exif(path: str) -> bool:
         """this method will generate exif data from metadata"""
-        LOGGER.warning("Creating exif from metadata file", path)
+        logger.warning("Creating exif from metadata file", path)
         files = os.listdir(path)
         photos = []
         metadata_photos = []
@@ -41,7 +40,7 @@ class ExifMetadataGenerator(ExifGenerator):
             photos.sort(key=lambda x: int(os.path.splitext(os.path.basename(x.path))[0]))
             metadata_photos.sort(key=lambda x: x.frame_index)
         else:
-            LOGGER.warning("WARNING: NO metadata photos found at %s", path)
+            logger.warning("WARNING: NO metadata photos found at %s", path)
             return False
 
         for photo in photos:
