@@ -7,6 +7,7 @@ from typing import Optional, Dict, List, Tuple, Any, Type
 # third party
 import exifread
 import piexif
+from exifread.classes import IfdTag, Ratio
 
 from common.models import PhotoMetadata, GPS, Compass, SensorItem, OSCDevice, ExifParameters, \
     RecordingType
@@ -131,7 +132,7 @@ def __dd_to_dms(decimal_degree) -> List[Tuple[float, int]]:
     return [(degrees, 1), (minute, 1), (seconds, 100)]
 
 
-def gps_latitude(gps_data: Dict[str, str]) -> Optional[float]:
+def gps_latitude(gps_data: Dict[str, IfdTag]) -> Optional[float]:
     """Exif latitude from gps_data represented by gps tags found in image exif"""
     if ExifTags.GPS_LATITUDE.value in gps_data:
         # latitude exists
@@ -153,7 +154,7 @@ def gps_latitude(gps_data: Dict[str, str]) -> Optional[float]:
     return None
 
 
-def gps_longitude(gps_data: Dict[str, str]) -> Optional[float]:
+def gps_longitude(gps_data: Dict[str, IfdTag]) -> Optional[float]:
     """Exif longitude from gps_data represented by gps tags found in image exif"""
     if ExifTags.GPS_LONGITUDE.value in gps_data:
         # longitude exists
@@ -175,7 +176,7 @@ def gps_longitude(gps_data: Dict[str, str]) -> Optional[float]:
     return None
 
 
-def gps_compass(gps_data: Dict[str, str]) -> Optional[float]:
+def gps_compass(gps_data: Dict[str, IfdTag]) -> Optional[float]:
     """Exif compass from gps_data represented by gps tags found in image exif.
     reference relative to true north"""
     if ExifTags.GPS_DIRECTION.value in gps_data:
@@ -190,16 +191,16 @@ def gps_compass(gps_data: Dict[str, str]) -> Optional[float]:
     return None
 
 
-def gps_timestamp(gps_data: Dict[str, str]) -> Optional[float]:
+def gps_timestamp(gps_data: Dict[str, IfdTag]) -> Optional[float]:
     """Exif gps time from gps_data represented by gps tags found in image exif.
     In exif there are values giving the hour, minute, and second.
     This is UTC time"""
     if ExifTags.GPS_TIMESTAMP.value in gps_data:
         # timestamp exists
         _timestamp = gps_data[ExifTags.GPS_TIMESTAMP.value]
-        hours: exifread.Ratio = _timestamp.values[0]
-        minutes: exifread.Ratio = _timestamp.values[1]
-        seconds: exifread.Ratio = _timestamp.values[2]
+        hours: Ratio = _timestamp.values[0]
+        minutes: Ratio = _timestamp.values[1]
+        seconds: Ratio = _timestamp.values[2]
 
         if hours.den == 0.0 or minutes.den == 0.0 or seconds.den == 0.0:
             return None
@@ -236,7 +237,7 @@ def gps_timestamp(gps_data: Dict[str, str]) -> Optional[float]:
     return None
 
 
-def timestamp(tags: Dict[str, str]) -> Optional[float]:
+def timestamp(tags: Dict[str, IfdTag]) -> Optional[float]:
     """Original timestamp determined by the digital still camera. This is timezone corrected."""
     if ExifTags.DATE_TIME_ORIGINAL.value in tags:
         date_taken = tags[ExifTags.DATE_TIME_ORIGINAL.value].values
@@ -283,7 +284,7 @@ def datetime_from_string(date_taken, string_format):
             raise e
 
 
-def gps_altitude(gps_tags: Dict[str, str]) -> Optional[float]:
+def gps_altitude(gps_tags: Dict[str, IfdTag]) -> Optional[float]:
     """GPS altitude form exif """
     if ExifTags.GPS_ALTITUDE.value in gps_tags:
         # altitude exists
@@ -296,7 +297,7 @@ def gps_altitude(gps_tags: Dict[str, str]) -> Optional[float]:
     return None
 
 
-def gps_speed(gps_tags: Dict[str, str]) -> Optional[float]:
+def gps_speed(gps_tags: Dict[str, IfdTag]) -> Optional[float]:
     """Returns GPS speed from exif in km per hour or None if no gps speed tag found"""
     if ExifTags.GPS_SPEED.value in gps_tags:
         # gps speed exist
@@ -312,7 +313,7 @@ def gps_speed(gps_tags: Dict[str, str]) -> Optional[float]:
     return None
 
 
-def maker_name(tags: Dict[str, str]) -> Optional[str]:
+def maker_name(tags: Dict[str, IfdTag]) -> Optional[str]:
     """this method returns a platform name"""
     device_make = None
     if ExifTags.DEVICE_MAKE.value in tags:
@@ -321,7 +322,7 @@ def maker_name(tags: Dict[str, str]) -> Optional[str]:
     return device_make
 
 
-def device_model(tags: Dict[str, str]) -> Optional[str]:
+def device_model(tags: Dict[str, IfdTag]) -> Optional[str]:
     """this method returns a device name"""
     model = None
     if ExifTags.DEVICE_MODEL.value in tags:
@@ -330,7 +331,7 @@ def device_model(tags: Dict[str, str]) -> Optional[str]:
     return model
 
 
-def exif_version(tags: Dict[str, str]) -> Optional[str]:
+def exif_version(tags: Dict[str, IfdTag]) -> Optional[str]:
     """this method returns exif version"""
     if ExifTags.FORMAT_VERSION.value in tags:
         return tags[ExifTags.FORMAT_VERSION.value]
@@ -373,7 +374,7 @@ def create_required_gps_tags(timestamp_gps: float,
 def add_optional_gps_tags(exif_gps: Dict[str, Any],
                           speed: Optional[float],
                           altitude: Optional[float],
-                          compass: Optional[float]) -> Dict[str, Any]:
+                          compass: Optional[float]):
     """This method will append optional tags to exif_gps tags dictionary"""
     if speed:
         exif_gps[piexif.GPSIFD.GPSSpeed] = (speed, 1)
@@ -397,12 +398,7 @@ class ExifParser(BaseParser):
         super().__init__(file_path, storage)
         self._data_pointer = 0
         self._body_pointer = 0
-        self.tags = self._all_tags()
-
-    @classmethod
-    def valid_parser(cls, file_path: str, storage: Storage):
-        """this method will return a valid parser"""
-        return ExifParser(file_path, storage)
+        self.tags: Dict[str, IfdTag] = self._all_tags()
 
     def next_item_with_class(self, item_class: Type[SensorItem]) -> Optional[SensorItem]:
         if item_class == PhotoMetadata:
@@ -483,7 +479,7 @@ class ExifParser(BaseParser):
         compass = photo_metadata.compass
         return gps, compass
 
-    def _all_tags(self) -> Dict[str, str]:
+    def _all_tags(self) -> Dict[str, IfdTag]:
         """Method to return Exif tags"""
         with self._storage.open(self.file_path, "rb") as file:
             tags = exifread.process_file(file, details=False)
@@ -534,22 +530,22 @@ class ExifParser(BaseParser):
         if tags_data is None:
             tags_data = self._all_tags()
 
-        photo = PhotoMetadata()
         gps = self._gps_item(tags_data)
         if gps is None:
             return None
 
+        compass = self._compass_item(tags_data) or Compass()
+        photo = PhotoMetadata()
         photo.gps = gps
-        compass = self._compass_item(tags_data)
-        photo.compass = compass if compass is not None else Compass()
+        photo.compass = compass
         photo.timestamp = timestamp(tags_data)
         file_name = os.path.basename(self.file_path)
         if file_name.isdigit():
             photo.frame_index = int(file_name)
-        if photo.gps is not None:
-            photo.timestamp = photo.gps.timestamp if photo.timestamp is None else photo.timestamp
+        if photo.timestamp is None:
+            photo.timestamp = photo.gps.timestamp
             return photo
-        return None
+        return photo
 
     def _device_item(self, tags_data=None) -> OSCDevice:
         if tags_data is None:
