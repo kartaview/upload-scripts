@@ -7,7 +7,7 @@ from argparse import ArgumentParser, RawTextHelpFormatter, SUPPRESS
 from login_controller import LoginController
 from osc_api_config import OSCAPISubDomain
 from osc_uploader import OSCUploadManager
-from osc_utils import create_exif_from_metadata
+from osc_utils import create_exif
 from osc_discoverer import SequenceDiscovererFactory
 
 LOGGER = logging.getLogger('osc_tools')
@@ -122,8 +122,8 @@ def upload_command(args):
 def exif_generation_command(args):
     """Generate Exif from metadata"""
     path = args.path
-    LOGGER.warning("Generating exif data from metadata file...")
-    create_exif_from_metadata(path)
+    LOGGER.warning("Trying to generating exif for images at path...")
+    create_exif(path)
     LOGGER.warning("Finished.")
 
 
@@ -202,7 +202,7 @@ def add_generate_exif_parser(subparsers: ArgumentParser):
     generate_parser.add_argument('-p',
                                  '--path',
                                  required=True,
-                                 help='Folder PATH with OSC metadata file and images')
+                                 help='Folder PATH with metadata file (OSC metadata, or custom geojson) and images')
     _add_logging_argument(generate_parser)
 
     return subparsers
