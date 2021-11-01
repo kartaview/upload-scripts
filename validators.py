@@ -1,10 +1,12 @@
 """This file will contain all validators used to validate a sequence"""
 
 import logging
+from typing import cast
+
 import constants
 from common.models import PhotoMetadata, OSCDevice, RecordingType
 from io_storage.storage import Local
-from parsers.osc_metadata.parser import MetadataParser
+from parsers.osc_metadata.parser import MetadataParser, metadata_parser
 from osc_models import Sequence, Video, Photo
 
 LOGGER = logging.getLogger('osc_tools.validators')
@@ -61,12 +63,12 @@ class SequenceMetadataValidator(SequenceValidator):
         if sequence.osc_metadata and not sequence.online_id:
             metadata_path = sequence.osc_metadata
             LOGGER.debug("        Validating Metadata %s", metadata_path)
-            parser: MetadataParser = MetadataParser.valid_parser(metadata_path, Local())
+            parser: MetadataParser = metadata_parser(metadata_path, Local())
             photo_item = parser.next_item_with_class(PhotoMetadata)
             if not photo_item:
                 LOGGER.debug(" No photo in metadata")
                 return False
-            device: OSCDevice = parser.next_item_with_class(OSCDevice)
+            device: OSCDevice = cast(OSCDevice, parser.next_item_with_class(OSCDevice))
             visual_item = sequence.visual_items[0]
 
             if device is not None and device.recording_type is not None:

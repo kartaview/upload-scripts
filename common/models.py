@@ -46,7 +46,7 @@ class PhotoMetadata(SensorItem):
         # index of the video in witch the PhotoMetadata has the corresponding image data.
         self.video_index: Optional[int] = None
         # frame index of the PhotoMetadata relative to the entire sequence of photos.
-        self.frame_index: Optional[int] = None
+        self.frame_index: int = None
 
     def __eq__(self, other):
         if isinstance(other, PhotoMetadata):
@@ -81,6 +81,14 @@ class GPS(SensorItem):
         self.vertical_accuracy: Optional[float] = None
         # speed is in m/s
         self.speed: Optional[float] = None
+
+    @classmethod
+    def gps(cls, timestamp: float, latitude: float, longitude: float):
+        gps = GPS()
+        gps.timestamp = timestamp
+        gps.latitude = latitude
+        gps.longitude = longitude
+        return gps
 
     def __eq__(self, other):
         if isinstance(other, GPS):
@@ -311,7 +319,7 @@ class CameraParameters(SensorItem):
         self.v_fov: Optional[float] = None
         # Aperture of the device.
         self.aperture: Optional[str] = None
-        self.projection: Optional[CameraProjection] = None
+        self.projection: CameraProjection = None
 
     def __eq__(self, other):
         if isinstance(other, CameraParameters):

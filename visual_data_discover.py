@@ -3,11 +3,11 @@
 
 import os
 import logging
-from typing import Optional
+from typing import Optional, Tuple, List, cast
 
 import constants
 from io_storage.storage import Local
-from parsers.osc_metadata.parser import MetadataParser
+from parsers.osc_metadata.parser import metadata_parser
 from parsers.exif import ExifParser
 from osc_models import VisualData, Photo, Video
 from common.models import PhotoMetadata, CameraParameters
@@ -20,7 +20,7 @@ class VisualDataDiscoverer:
     """This class is a abstract discoverer of visual data files"""
 
     @classmethod
-    def discover(cls, path: str) -> ([VisualData], str):
+    def discover(cls, path: str) -> Tuple[List[VisualData], str]:
         """This method will discover visual data and will return paths and type"""
         pass
 
@@ -34,7 +34,7 @@ class PhotoDiscovery(VisualDataDiscoverer):
     """This class will discover all photo files"""
 
     @classmethod
-    def discover(cls, path: str) -> ([VisualData], str):
+    def discover(cls, path: str) -> Tuple[List[VisualData], str]:
         """This method will discover photos"""
         LOGGER.debug("searching for photos %s", path)
         if not os.path.isdir(path):
@@ -58,10 +58,10 @@ class PhotoDiscovery(VisualDataDiscoverer):
             photo.index = index
             index += 1
 
-        return photos, "photo"
+        return cast(List[VisualData], photos), "photo"
 
     @classmethod
-    def _photo_from_path(cls, path) -> Photo:
+    def _photo_from_path(cls, path) -> Optional[Photo]:
         photo = Photo(path)
         return photo
 
@@ -75,8 +75,8 @@ class ExifPhotoDiscoverer(PhotoDiscovery):
     @classmethod
     def _photo_from_path(cls, path) -> Optional[Photo]:
         photo = Photo(path)
-        exif_parser = ExifParser.valid_parser(path, Local())
-        photo_metadata: PhotoMetadata = exif_parser.next_item_with_class(PhotoMetadata)
+        exif_parser = ExifParser(path, Local())
+        photo_metadata: PhotoMetadata = cast(PhotoMetadata, exif_parser.next_item_with_class(PhotoMetadata))
 
         if photo_metadata is None:
             return None
@@ -101,8 +101,8 @@ class ExifPhotoDiscoverer(PhotoDiscovery):
         photo.gps_compass = photo_metadata.compass.compass
 
         try:
-            xmp_parser = XMPParser.valid_parser(path, Local())
-            camera_params: CameraParameters = xmp_parser.next_item_with_class(CameraParameters)
+            xmp_parser = XMPParser(path, Local())
+            camera_params: CameraParameters = cast(CameraParameters, xmp_parser.next_item_with_class(CameraParameters))
             if camera_params is not None:
                 photo.fov = camera_params.h_fov
                 photo.projection = camera_params.projection
@@ -124,11 +124,13 @@ class PhotoMetadataDiscoverer(PhotoDiscovery):
         photos, visual_type = super().discover(path)
         metadata_file = os.path.join(path, constants.METADATA_NAME)
         if os.path.exists(metadata_file):
-            parser = MetadataParser.valid_parser(metadata_file, Local())
+            parser = metadata_parser(metadata_file, Local())
             parser.start_new_reading()
-            metadata_photos = parser.items_with_class(PhotoMetadata)
+            metadata_photos = cast(List[PhotoMetadata], parser.items_with_class(PhotoMetadata))
             remove_photos = []
             for photo in photos:
+                if not isinstance(photo, Photo):
+                    continue
                 for tmp_photo in metadata_photos:
                     if int(tmp_photo.frame_index) == photo.index:
                         metadata_photo_to_photo(tmp_photo, photo)
@@ -158,7 +160,7 @@ class VideoDiscoverer(VisualDataDiscoverer):
     """This class will discover any sequence having a list of videos"""
 
     @classmethod
-    def discover(cls, path: str) -> ([VisualData], str):
+    def discover(cls, path: str) -> Tuple[List[VisualData], str]:
         if not os.path.isdir(path):
             return [], "video"
 

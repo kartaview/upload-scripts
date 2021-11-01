@@ -1,6 +1,8 @@
 """osc_models module contains all the application level models"""
 from typing import Optional
 
+from common.models import CameraProjection
+
 
 class Sequence:
     """Sequence is a model class containing a list of visual items"""
@@ -65,7 +67,7 @@ class Photo(VisualData):
         self.gps_altitude: float = None
         self.gps_compass: float = None
         self.fov: Optional[float] = None
-        self.projection: str = None
+        self.projection: CameraProjection = None
 
     def __eq__(self, other):
         if isinstance(other, Photo):

@@ -22,17 +22,6 @@ class MetadataParser(BaseParser):
         self._alias_definitions: Dict[str, SensorItemDefinition] = {}
         self._configure_headers()
 
-    @classmethod
-    def valid_parser(cls, file_path, storage: Storage):
-        """this method will return a valid metadata parser"""
-        with storage.open(file_path) as metadata_file:
-            header_line = metadata_file.readline()
-            if "METADATA:2.0" in header_line:
-                # parse this file with MetadataV2 parser
-                return MetadataParser(file_path, storage)
-            # fallback on MetadataParserLegacy
-            return MetadataParserLegacy(file_path, storage)
-
     def format_version(self) -> Optional[str]:
         """According to the documentation the version is found in the first line
         eg. METADATA:2.0"""
@@ -541,3 +530,14 @@ class MetadataParserLegacy(MetadataParser):
         return None
 
     # </editor-fold>
+
+
+def metadata_parser(file_path, storage: Storage) -> MetadataParser:
+    """this method will return a valid metadata parser"""
+    with storage.open(file_path) as metadata_file:
+        header_line = metadata_file.readline()
+        if "METADATA:2.0" in header_line:
+            # parse this file with MetadataV2 parser
+            return MetadataParser(file_path, storage)
+        # fallback on MetadataParserLegacy
+        return MetadataParserLegacy(file_path, storage)

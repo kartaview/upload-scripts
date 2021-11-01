@@ -345,6 +345,7 @@ def camera_v1() -> ItemParser:
     def type_conversion(camera: CameraParameters):
         camera.h_fov = float(camera.h_fov)
         camera.v_fov = None  # TODO: Compute v_fov based on h_fov and resolution
+        camera.projection = CameraProjection.PLAIN
 
     parser = ItemParser(1, {'h_fov': 0,
                             'v_fov': 1,

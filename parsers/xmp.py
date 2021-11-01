@@ -23,10 +23,6 @@ class XMPParser(BaseParser):
             xmp_str = d[xmp_start:xmp_end + 12]
         return xmp_str
 
-    @classmethod
-    def valid_parser(cls, file_path: str, storage: Storage):
-        return XMPParser(file_path, storage)
-
     def next_item_with_class(self, item_class: Type[SensorItem]) -> Optional[SensorItem]:
         if item_class == CameraParameters:
             return self._camera_item()

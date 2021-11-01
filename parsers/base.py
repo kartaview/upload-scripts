@@ -15,11 +15,6 @@ class BaseParser(metaclass=abc.ABCMeta):
         self._data_pointer: Optional[int] = None
         self._storage = storage
 
-    @classmethod
-    def valid_parser(cls, file_path: str, storage: Storage):
-        """this method will return a valid parser"""
-        pass
-
     @abc.abstractmethod
     def next_item_with_class(self, item_class: Type[SensorItem]) -> Optional[SensorItem]:
         """this method will return a the next SensorItem found in the current file,

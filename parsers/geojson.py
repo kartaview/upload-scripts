@@ -3,7 +3,6 @@ import time
 
 from geojson import load
 
-from io_storage.storage import Storage
 from parsers.base import BaseParser
 from common.models import SensorItem, GPS
 
@@ -25,11 +24,6 @@ other_value = "notes"
 
 class GeoJsonParser(BaseParser):
     """this class is a BaseParser that can parse a GPX"""
-
-    @classmethod
-    def valid_parser(cls, file_path: str, storage: Storage) -> BaseParser:
-        """this method will return a valid parser"""
-        return GeoJsonParser(file_path, storage)
 
     def next_item_with_class(self, item_class: Type[SensorItem]) -> Optional[SensorItem]:
         return None
