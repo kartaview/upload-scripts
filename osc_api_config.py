@@ -14,6 +14,3 @@ class OSCAPISubDomain(Enum):
     TESTING = 'testing-api.'
     STAGING = 'staging-api.'
     BETA = 'beta-api.'
-
-
-

@@ -1,7 +1,9 @@
 """this file contains all item parsers for Metadata2.0"""
-from typing import List
+from typing import List, Optional
 
-from common.models import *
+from common.models import SensorItem, PhotoMetadata, GPS, Acceleration, Compass, OBD, Pressure
+from common.models import Attitude, Gravity, DeviceMotion, OSCDevice, RecordingType
+from common.models import CameraParameters, ExifParameters, CameraProjection
 
 
 class ItemParser:
@@ -163,7 +165,8 @@ def photo_v1():
             photo_metadata.obd.timestamp = float(photo_metadata.obd.timestamp)
             photo_metadata.obd.speed = float(photo_metadata.obd.speed)
 
-        if photo_metadata.compass.compass is not None and photo_metadata.compass.timestamp is not None:
+        if (photo_metadata.compass.compass is not None
+                and photo_metadata.compass.timestamp is not None):
             photo_metadata.compass.compass = float(photo_metadata.compass.compass)
             photo_metadata.compass.timestamp = float(photo_metadata.compass.timestamp)
 
@@ -291,17 +294,6 @@ def gravity_v1() -> ItemParser:
 def device_motion_v1() -> ItemParser:
     """This method is returns a DeviceMotion ItemParser for DeviceMotion row version 1"""
 
-    def type_conversions(device_motion: DeviceMotion):
-        device_motion.acceleration.acc_x = float(device_motion.acceleration.acc_x)
-        device_motion.acceleration.acc_y = float(device_motion.acceleration.acc_y)
-        device_motion.acceleration.acc_z = float(device_motion.acceleration.acc_z)
-        device_motion.gravity.acc_x = float(device_motion.gravity.acc_x)
-        device_motion.gravity.acc_y = float(device_motion.gravity.acc_y)
-        device_motion.gravity.acc_z = float(device_motion.gravity.acc_z)
-        device_motion.gyroscope.yaw = float(device_motion.gyroscope.yaw)
-        device_motion.gyroscope.pitch = float(device_motion.gyroscope.pitch)
-        device_motion.gyroscope.roll = float(device_motion.gyroscope.roll)
-
     parser = ItemParser(1, {'gyroscope.yaw': 0,
                             'gyroscope.pitch': 1,
                             'gyroscope.roll': 2,
@@ -312,7 +304,7 @@ def device_motion_v1() -> ItemParser:
                             'gravity.acc_y': 7,
                             'gravity.acc_z': 8},
                         DeviceMotion, "DEVICEMOTION",
-                        type_conversions)
+                        DeviceMotion.type_conversions)
     return parser
 
 

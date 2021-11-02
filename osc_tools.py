@@ -202,7 +202,8 @@ def add_generate_exif_parser(subparsers):
     generate_parser.add_argument('-p',
                                  '--path',
                                  required=True,
-                                 help='Folder PATH with metadata file (OSC metadata, or custom geojson) and images')
+                                 help='Folder PATH with metadata file '
+                                      '(OSC metadata, or custom geojson) and images')
     generate_parser.add_argument('--exif_source',
                                  required=True,
                                  choices=['metadata', "custom_geojson"])

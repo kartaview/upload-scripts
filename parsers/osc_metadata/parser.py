@@ -2,11 +2,12 @@
 from typing import Optional, Dict, List, Tuple, Type
 
 from common.models import SensorItem, PhotoMetadata, ExifParameters, Attitude, Acceleration
-from common.models import Compass, CameraParameters, DeviceMotion, OBD, GPS, Pressure, Gravity, RecordingType
+from common.models import Compass, CameraParameters, DeviceMotion, OBD, GPS, Pressure, Gravity
+from common.models import RecordingType, OSCDevice
 from io_storage.storage import Storage
 
 from parsers.base import BaseParser
-from parsers.osc_metadata.item_factory import SensorItemDefinition, ItemParser, OSCDevice
+from parsers.osc_metadata.item_factory import SensorItemDefinition, ItemParser
 import parsers.osc_metadata.legacy_item_factory as legacy
 from parsers.osc_metadata.legacy_item_factory import ItemLegacyParser
 
@@ -17,6 +18,7 @@ class MetadataParser(BaseParser):
 
     def __init__(self, file_path, storage: Storage):
         super().__init__(file_path, storage)
+        self._data_pointer = 0
         self._device_item: Optional[OSCDevice] = None
         self._metadata_version = None
         self._alias_definitions: Dict[str, SensorItemDefinition] = {}
@@ -92,7 +94,8 @@ class MetadataParser(BaseParser):
 
             return parser.parse(item_data, timestamp)
 
-    def compatible_sensors(self):
+    @classmethod
+    def compatible_sensors(cls):
         return [PhotoMetadata, GPS, Acceleration, Compass, OBD, Pressure, Attitude,
                 Gravity, OSCDevice, DeviceMotion, CameraParameters, ExifParameters]
 
@@ -236,7 +239,8 @@ class MetadataParserLegacy(MetadataParser):
         self._aggregate_photo_data(all_items)
         return all_items
 
-    def compatible_sensors(self):
+    @classmethod
+    def compatible_sensors(cls):
         return [PhotoMetadata, GPS, Acceleration, Compass, OBD, Pressure, Attitude,
                 Gravity, OSCDevice, DeviceMotion]
 

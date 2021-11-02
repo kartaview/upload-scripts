@@ -111,8 +111,8 @@ class OSCApi:
         if response is None:
             return False
         try:
+            json_response = response.json()
             if response.status_code != 200:
-                json_response = response.json()
                 if "status" in json_response and \
                         "apiMessage" in json_response["status"] and \
                         "duplicate entry" in json_response["status"]["apiMessage"]:
@@ -129,12 +129,10 @@ class OSCApi:
                              sequence_id)
                 return False
 
-            json_response = response.json()
-            if "osv" in json_response:
-                if "photo" in json_response["osv"] and "id" in json_response["osv"]["photo"]:
-                    return True
-                elif "video" in json_response["osv"] and "id" in json_response["osv"]["video"]:
-                    return True
+            if ("osv" in json_response and
+                    (("photo" in json_response["osv"] and "id" in json_response["osv"]["photo"]) and
+                     ("video" in json_response["osv"] and "id" in json_response["osv"]["video"]))):
+                return True
         except ValueError:
             return False
         return False
@@ -313,7 +311,8 @@ class OSCApi:
     def sequence_link(self, sequence) -> str:
         """This method will return a link to OSC website page displaying the sequence
         sent as parameter"""
-        return _website(OSCApiMethods.sequence_details(self.environment)) + "/" + str(sequence.online_id)
+        sequence_details_url = OSCApiMethods.sequence_details(self.environment)
+        return _website(f"{sequence_details_url}/{str(sequence.online_id)}")
 
     def download_metadata(self, sequence: OSCSequence, path: str, override=False):
         """this method will download a metadata file of a sequence to the specified path.
@@ -353,12 +352,13 @@ class OSCApi:
 
             url = OSCApiMethods.sequence_create(self.environment)
             if sequence.metadata_url:
-                load_data = {'metaData': (constants.METADATA_NAME,
-                                          open(sequence.metadata_url, 'rb'),
-                                          'text/plain')}
-                response = requests.post(url,
-                                         data=parameters,
-                                         files=load_data)
+                with open(sequence.metadata_url, 'rb') as metadata_file:
+                    load_data = {'metaData': (constants.METADATA_NAME,
+                                              metadata_file,
+                                              'text/plain')}
+                    response = requests.post(url,
+                                             data=parameters,
+                                             files=load_data)
             else:
                 response = requests.post(url, data=parameters)
             json_response = response.json()
@@ -372,7 +372,8 @@ class OSCApi:
 
         return None, None
 
-    def finish_upload(self, sequence: OSCSequence, token: str) -> Tuple[Optional[bool], Optional[Exception]]:
+    def finish_upload(self, sequence: OSCSequence, token: str) -> Tuple[Optional[bool],
+                                                                        Optional[Exception]]:
         """this method must be called in order to signal that a sequence has no more data to be
         uploaded."""
         try:
@@ -391,22 +392,26 @@ class OSCApi:
     def upload_video(self, access_token,
                      sequence_id,
                      video_path: str,
-                     video_index) -> Tuple[bool, Exception]:
+                     video_index) -> Tuple[bool, Optional[Exception]]:
         """This method will upload a video to OSC API"""
         try:
             parameters = {'access_token': access_token,
                           'sequenceId': sequence_id,
                           'sequenceIndex': video_index
                           }
-            load_data = {'video': (os.path.basename(video_path),
-                                   open(video_path, 'rb'),
-                                   'video/mp4')}
-            video_upload_url = OSCApiMethods.video_upload(self.environment)
-            response = requests.post(video_upload_url,
-                                     data=parameters,
-                                     files=load_data,
-                                     timeout=100)
-            return OSCApi.__upload_response_success(response, "video", video_index, sequence_id), None
+            with open(video_path, 'rb') as video_file:
+                load_data = {'video': (os.path.basename(video_path),
+                                       video_file,
+                                       'video/mp4')}
+                video_upload_url = OSCApiMethods.video_upload(self.environment)
+                response = requests.post(video_upload_url,
+                                         data=parameters,
+                                         files=load_data,
+                                         timeout=100)
+            return OSCApi.__upload_response_success(response,
+                                                    "video",
+                                                    video_index,
+                                                    sequence_id), None
         except requests.RequestException as ex:
             LOGGER.debug("Received exception on video upload %s", str(ex))
             return False, ex

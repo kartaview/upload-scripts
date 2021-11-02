@@ -101,7 +101,7 @@ class GPS(SensorItem):
         return hash((self.timestamp, self.latitude, self.longitude))
 
     def __str__(self):
-        return "[{:f} : ({:.15f}, {:.15f})]".format(self.timestamp, self.longitude, self.latitude)
+        return f"[{self.timestamp} : ({self.longitude}, {self.latitude})]"
 
 
 class Acceleration(SensorItem):
@@ -263,6 +263,18 @@ class DeviceMotion(SensorItem):
                      self.acceleration,
                      self.gravity))
 
+    @staticmethod
+    def type_conversions(device_motion):
+        device_motion.acceleration.acc_x = float(device_motion.acceleration.acc_x)
+        device_motion.acceleration.acc_y = float(device_motion.acceleration.acc_y)
+        device_motion.acceleration.acc_z = float(device_motion.acceleration.acc_z)
+        device_motion.gravity.acc_x = float(device_motion.gravity.acc_x)
+        device_motion.gravity.acc_y = float(device_motion.gravity.acc_y)
+        device_motion.gravity.acc_z = float(device_motion.gravity.acc_z)
+        device_motion.gyroscope.yaw = float(device_motion.gyroscope.yaw)
+        device_motion.gyroscope.pitch = float(device_motion.gyroscope.pitch)
+        device_motion.gyroscope.roll = float(device_motion.gyroscope.roll)
+
 
 class OSCDevice(SensorItem):
     """OSCDevice is a SensorItem model class that can represent an device data"""
@@ -313,9 +325,9 @@ class CameraParameters(SensorItem):
 
     def __init__(self):
         super().__init__()
-        # Horizontal field of view in degrees. If field of view is unknown, a value of 0 is returned.
+        # Horizontal field of view in degrees. If field of view is unknown, 0 is returned.
         self.h_fov: Optional[float] = None
-        # Vertical field of view in degrees. If field of view is unknown, a value of 0 is returned.
+        # Vertical field of view in degrees. If field of view is unknown, 0 is returned.
         self.v_fov: Optional[float] = None
         # Aperture of the device.
         self.aperture: Optional[str] = None

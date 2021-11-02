@@ -16,8 +16,10 @@ def osm_auth(request_user_action, error_handle) -> Tuple[Optional[str], Optional
     service.fetch_request_token('https://www.openstreetmap.org/oauth/request_token')
     authorization_url = service.authorization_url('https://www.openstreetmap.org/oauth/authorize')
     request_user_action(authorization_url)
+    # pylint: disable=W0703
     try:
-        access_token_response = service.fetch_access_token('https://www.openstreetmap.org/oauth/access_token',
+        access_token_url = 'https://www.openstreetmap.org/oauth/access_token'
+        access_token_response = service.fetch_access_token(access_token_url,
                                                            verifier=" ")
     except Exception as ex:
         error_handle(ex)

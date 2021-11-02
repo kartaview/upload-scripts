@@ -1,3 +1,6 @@
+"""
+This module is used to generate exif data from OSC Metadata file recorded by iOS or Android apps.
+"""
 import logging
 import os
 from typing import cast, List
@@ -18,7 +21,7 @@ class ExifMetadataGenerator(ExifGenerator):
     @staticmethod
     def create_exif(path: str) -> bool:
         """this method will generate exif data from metadata"""
-        logger.warning("Creating exif from metadata file", path)
+        logger.warning("Creating exif from metadata file %s", path)
         files = os.listdir(path)
         photos = []
         metadata_photos = []

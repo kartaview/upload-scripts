@@ -6,12 +6,14 @@ import logging
 from typing import Optional, Tuple, List, cast
 
 import constants
+
 from io_storage.storage import Local
 from parsers.osc_metadata.parser import metadata_parser
 from parsers.exif import ExifParser
+from parsers.xmp import XMPParser
 from osc_models import VisualData, Photo, Video
 from common.models import PhotoMetadata, CameraParameters
-from parsers.xmp import XMPParser
+
 
 LOGGER = logging.getLogger('osc_tools.visual_data_discoverer')
 
@@ -22,12 +24,10 @@ class VisualDataDiscoverer:
     @classmethod
     def discover(cls, path: str) -> Tuple[List[VisualData], str]:
         """This method will discover visual data and will return paths and type"""
-        pass
 
     @classmethod
     def discover_using_type(cls, path: str, osc_type: str):
         """this method is discovering the online visual data knowing the type"""
-        pass
 
 
 class PhotoDiscovery(VisualDataDiscoverer):
@@ -72,11 +72,13 @@ class PhotoDiscovery(VisualDataDiscoverer):
 
 class ExifPhotoDiscoverer(PhotoDiscovery):
     """This class will discover all photo files having exif data"""
+
     @classmethod
     def _photo_from_path(cls, path) -> Optional[Photo]:
         photo = Photo(path)
         exif_parser = ExifParser(path, Local())
-        photo_metadata: PhotoMetadata = cast(PhotoMetadata, exif_parser.next_item_with_class(PhotoMetadata))
+        photo_metadata: PhotoMetadata = cast(PhotoMetadata,
+                                             exif_parser.next_item_with_class(PhotoMetadata))
 
         if photo_metadata is None:
             return None
@@ -100,12 +102,14 @@ class ExifPhotoDiscoverer(PhotoDiscovery):
         photo.gps_altitude = photo_metadata.gps.altitude
         photo.gps_compass = photo_metadata.compass.compass
 
+        # pylint: disable=W0703
         try:
             xmp_parser = XMPParser(path, Local())
-            camera_params: CameraParameters = cast(CameraParameters, xmp_parser.next_item_with_class(CameraParameters))
-            if camera_params is not None:
-                photo.fov = camera_params.h_fov
-                photo.projection = camera_params.projection
+            params: CameraParameters = cast(CameraParameters,
+                                            xmp_parser.next_item_with_class(CameraParameters))
+            if params is not None:
+                photo.fov = params.h_fov
+                photo.projection = params.projection
         except Exception:
             pass
 

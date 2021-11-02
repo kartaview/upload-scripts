@@ -1,3 +1,7 @@
+"""
+Interface for exif generation. This should be implemented in order to add support for exif
+generation from any custom data source.
+"""
 import abc
 
 

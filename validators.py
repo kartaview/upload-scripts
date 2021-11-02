@@ -20,9 +20,6 @@ class SequenceValidator:
             return self == other
         return False
 
-    def __hash__(self):
-        return super().__hash__()
-
     def validate(self, sequence: Sequence) -> bool:
         """This method returns is a bool. If it returns True the sequence is valid if returns
         False the sequence is not valid and it is not usable for OSC servers.
@@ -50,9 +47,6 @@ class SequenceMetadataValidator(SequenceValidator):
             return self == other
         return False
 
-    def __hash__(self):
-        return super().__hash__()
-
     def validate(self, sequence: Sequence) -> bool:
         """This method returns is a bool, If it returns True the sequence is valid if returns
                 False the sequence is not valid and it is not usable for OSC servers.
@@ -72,9 +66,11 @@ class SequenceMetadataValidator(SequenceValidator):
             visual_item = sequence.visual_items[0]
 
             if device is not None and device.recording_type is not None:
-                if device.recording_type == RecordingType.VIDEO and not isinstance(visual_item, Video):
+                if device.recording_type == RecordingType.VIDEO and not isinstance(visual_item,
+                                                                                   Video):
                     return False
-                if device.recording_type == RecordingType.PHOTO and not isinstance(visual_item, Photo):
+                if device.recording_type == RecordingType.PHOTO and not isinstance(visual_item,
+                                                                                   Photo):
                     return False
         return True
 
@@ -87,9 +83,6 @@ class SequenceFinishedValidator(SequenceValidator):
         if isinstance(other, SequenceFinishedValidator):
             return self == other
         return False
-
-    def __hash__(self):
-        return super().__hash__()
 
     def validate(self, sequence: Sequence) -> bool:
         """this method will return true if a sequence is already uploaded and was flagged

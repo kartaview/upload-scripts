@@ -26,7 +26,7 @@ class ExifTags(Enum):
     """This is a enumeration of exif tags. More info here
     http://owl.phy.queensu.ca/~phil/exiftool/TagNames/GPS.html """
     DATE_TIME_ORIGINAL = "EXIF DateTimeOriginal"
-    DATE_Time_DIGITIZED = "EXIF DateTimeDigitized"
+    DATE_TIME_DIGITIZED = "EXIF DateTimeDigitized"
     # latitude
     GPS_LATITUDE = "GPS GPSLatitude"
     GPS_LATITUDE_REF = "GPS GPSLatitudeRef"
@@ -60,8 +60,8 @@ class CardinalDirection(Enum):
     S = "S"
     E = "E"
     W = "W"
-    TrueNorth = "T"
-    MagneticNorth = "M"
+    TRUE_NORTH = "T"
+    MAGNETIC_NORTH = "M"
 
 
 class SeaLevel(Enum):
@@ -183,7 +183,7 @@ def gps_compass(gps_data: Dict[str, IfdTag]) -> Optional[float]:
         # compass exists
         compass_ratio = gps_data[ExifTags.GPS_DIRECTION.value].values[0]
         if ExifTags.GPS_DIRECTION_REF.value in gps_data and \
-                gps_data[ExifTags.GPS_DIRECTION_REF.value] == CardinalDirection.MagneticNorth:
+                gps_data[ExifTags.GPS_DIRECTION_REF.value] == CardinalDirection.MAGNETIC_NORTH:
             # if we find magnetic north then we don't consider a valid compass
             return None
         return compass_ratio.num / compass_ratio.den
@@ -232,7 +232,6 @@ def gps_timestamp(gps_data: Dict[str, IfdTag]) -> Optional[float]:
             return day_timestamp + date_timestamp
 
         # no date information only hour minutes second of day -> no valid gps timestamp
-        return None
     # no gps timestamp found
     return None
 
@@ -247,8 +246,8 @@ def timestamp(tags: Dict[str, IfdTag]) -> Optional[float]:
         _timestamp = date_time_value.timestamp()
 
         return _timestamp
-    if ExifTags.DATE_Time_DIGITIZED.value in tags:
-        date_taken = tags[ExifTags.DATE_Time_DIGITIZED.value].values
+    if ExifTags.DATE_TIME_DIGITIZED.value in tags:
+        date_taken = tags[ExifTags.DATE_TIME_DIGITIZED.value].values
         date_time_value = datetime_from_string(date_taken, "%Y:%m:%d %H:%M:%S")
         if date_time_value is None:
             return None
@@ -262,11 +261,11 @@ def timestamp(tags: Dict[str, IfdTag]) -> Optional[float]:
 def datetime_from_string(date_taken, string_format):
     try:
         tmp = str(date_taken).replace("-", ":")
-        dt = datetime.datetime.strptime(tmp, string_format)
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=datetime.timezone.utc)
-        return dt
-    except ValueError as e:
+        time_value = datetime.datetime.strptime(tmp, string_format)
+        if time_value.tzinfo is None:
+            time_value = time_value.replace(tzinfo=datetime.timezone.utc)
+        return time_value
+    except ValueError as error:
         # this is are workarounds for wrong timestamp format e.g
 
         # date_taken = "????:??:?? ??:??:??"
@@ -276,12 +275,12 @@ def datetime_from_string(date_taken, string_format):
         # date_taken=b'\\xf2\\xf0\\xf1\\xf9:\\xf0\\xf4:\\xf0\\xf5 \\xf1\\xf1:\\xf2\\xf9:\\xf5\\xf4'
         try:
             date_taken = str(date_taken.decode("utf-8", "backslashreplace")).replace("\\xf", "")
-            dt = datetime.datetime.strptime(date_taken, string_format)
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=datetime.timezone.utc)
-            return dt
+            time_value = datetime.datetime.strptime(date_taken, string_format)
+            if time_value.tzinfo is None:
+                time_value = time_value.replace(tzinfo=datetime.timezone.utc)
+            return time_value
         except ValueError:
-            raise e
+            raise ValueError from error
 
 
 def gps_altitude(gps_tags: Dict[str, IfdTag]) -> Optional[float]:
@@ -388,7 +387,7 @@ def add_optional_gps_tags(exif_gps: Dict[str, Any],
         exif_gps[piexif.GPSIFD.GPSAltitudeRef] = sea_level
     if compass:
         exif_gps[piexif.GPSIFD.GPSImgDirection] = (int(compass), 1)
-        exif_gps[piexif.GPSIFD.GPSImgDirectionRef] = CardinalDirection.TrueNorth.value
+        exif_gps[piexif.GPSIFD.GPSImgDirectionRef] = CardinalDirection.TRUE_NORTH.value
 
 
 # </editor-fold>
@@ -472,7 +471,8 @@ class ExifParser(BaseParser):
             if tags is not None:
                 add_gps_tags(self.file_path, tags)
 
-    def compatible_sensors(self):
+    @classmethod
+    def compatible_sensors(cls):
         return [PhotoMetadata, GPS, Compass, OSCDevice]
 
     # <editor-fold desc="Private methods">
@@ -500,8 +500,8 @@ class ExifParser(BaseParser):
         if (not gps.timestamp or
                 (exif_timestamp is not None and exif_timestamp > 31556952
                  and abs(gps.timestamp - exif_timestamp) > 31556952)):
-            # if there is no gps timestamp or gps timestamp differs with more then 1 year compared to exif_timestamp we
-            # choose exif_timestamp
+            # if there is no gps timestamp or gps timestamp differs with more then 1 year
+            # compared to exif_timestamp we choose exif_timestamp
             gps.timestamp = exif_timestamp
 
         # required latitude and longitude

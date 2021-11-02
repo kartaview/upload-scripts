@@ -1,14 +1,19 @@
 """Module responsible to parse Exif information from a image"""
 from typing import Optional, List, Type
-import gpxpy.gpx
 from datetime import datetime
 
+import gpxpy.gpx
+
+from io_storage.storage import Storage
 from parsers.base import BaseParser
 from common.models import SensorItem, GPS
 
 
 class GPXParser(BaseParser):
     """this class is a BaseParser that can parse a GPX"""
+    def __init__(self, path: str, storage: Storage):
+        super().__init__(path, storage)
+        self._data_pointer = 0
 
     def next_item_with_class(self, item_class: Type[SensorItem]) -> Optional[SensorItem]:
         if item_class != GPS:
@@ -130,5 +135,6 @@ class GPXParser(BaseParser):
 
         return point
 
-    def compatible_sensors(self):
+    @classmethod
+    def compatible_sensors(cls):
         return [GPS]

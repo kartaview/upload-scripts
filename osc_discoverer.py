@@ -28,9 +28,6 @@ class OSCUploadProgressDiscoverer:
             return self == other
         return False
 
-    def __hash__(self):
-        return super().__hash__()
-
     @classmethod
     def discover(cls, path: str) -> List[str]:
         """this method will discover a upload progress file and parse it to get a progress list."""
@@ -51,9 +48,6 @@ class OSCMetadataDiscoverer:
         if isinstance(other, OSCMetadataDiscoverer):
             return self == other
         return False
-
-    def __hash__(self):
-        return super().__hash__()
 
     @classmethod
     def discover(cls, path: str) -> str:
@@ -110,7 +104,7 @@ class SequenceDiscoverer:
     def discover(self, path: str) -> [Sequence]:
         """This method will discover a valid sequence"""
         files = os.listdir(path)
-        sequences = list()
+        sequences = []
         for file_path in files:
             full_path = os.path.join(path, file_path)
             if os.path.isdir(full_path):
@@ -217,4 +211,3 @@ class SequenceDiscovererFactory:
         finished_finder.osc_metadata = None
         finished_finder.validator = SequenceFinishedValidator()
         return finished_finder
-
