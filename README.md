@@ -1,4 +1,4 @@
-![KartaView](http://kartaview.org/assets/images/logo-KartaView.svg)
+![KartaView](https://github.com/kartaview/upload-scripts/blob/master/logo-KartaView-light.png)
 
 ## KartaView Tools
 
@@ -56,10 +56,75 @@ python osc_tools.py -h
 # help for Exif generation
 python osc_tools.py generate_exif -h
 
-# Exif generation for sequence in ~/OSC_sequences/Sequence1 folder
-python osc_tools.py generate_exif -p ~/OSC_seqences/Sequence1
+# Exif generation for mobile recorded sequence in ~/OSC_sequences/Sequence1 folder
+python osc_tools.py generate_exif -exif_source metadata -p ~/OSC_seqences/Sequence1
 
+# Exif generation for custom geojson + imagery 
+python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderContainingGeoJsonAndImages
 ```
+
+<details>
+  <summary>Custom geojson required fields example:</summary>
+ 
+ ```javascript
+      
+ {
+         "type":"FeatureCollection",
+         "features":[
+            {
+               "type":"Feature",
+               "properties":{
+                  "order":1.0,
+                  "path":"relative_image_path_1.jpg",
+                  "direction":236.0,
+                  "Lat":1.910309,
+                  "Lon":1.503069,
+                  "Timestamp":"2020-01-20T08:00:01Z"
+               },
+               "geometry":{ 
+                  "type":"Point",
+                  "coordinates":[ 1.503069408072847, 1.910308570011793 ]
+               }
+            },
+            {
+               "type":"Feature",
+               "properties":{
+                  "order":2.0,
+                  "path":"relative_image_path_2.jpg",
+                  "direction":236.0,
+                  "Lat":1.910199,
+                  "Lon":1.502908,
+                  "Timestamp":"2020-01-20T08:01:21Z"
+               },
+               "geometry":{
+                  "type":"Point",
+                  "coordinates":[ 1.502907515952158, 1.910198963742701 ]
+               }
+            },
+            {
+               "type":"Feature",
+               "properties":{
+                  "order":3.0,
+                  "path":"relative_image_path_3.jpg",
+                  "direction":236.0,
+                  "Lat":1.910096,
+                  "Lon":1.502764,
+                  "Timestamp":"2020-01-20T08:12:10Z"
+               },
+               "geometry":{
+                  "type":"Point",
+                  "coordinates":[ 1.50276400212099, 1.910095961756973 ]
+               }
+            }
+         ]
+      
+ }
+
+
+   ```
+  
+</details>
+
 
 ##### Docker
 To run the scripts inside a Docker container:
