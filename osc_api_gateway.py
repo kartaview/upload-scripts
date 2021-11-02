@@ -130,7 +130,7 @@ class OSCApi:
                 return False
 
             if ("osv" in json_response and
-                    (("photo" in json_response["osv"] and "id" in json_response["osv"]["photo"]) and
+                    (("photo" in json_response["osv"] and "id" in json_response["osv"]["photo"]) or
                      ("video" in json_response["osv"] and "id" in json_response["osv"]["video"]))):
                 return True
         except ValueError:
