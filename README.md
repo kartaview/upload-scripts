@@ -41,12 +41,11 @@ python osc_tools.py upload -p ~/OSC_seqences
 
 ```
 
-## 2. Generate Exif info from KV metadata file
+## 2. Generate Exif info 
 
 ##### Description
-This script generates GPS Exif info for each image from an KV metadata format file.
+This script generates GPS Exif for each image. It has two options generating exif info from metadata file or generating exif info from a custom geojson file. 
 
-##### Usage
 ```
 cd /path_to_scripts
 
@@ -55,16 +54,35 @@ python osc_tools.py -h
 
 # help for Exif generation
 python osc_tools.py generate_exif -h
-
-# Exif generation for mobile recorded sequence in ~/OSC_sequences/Sequence1 folder
-python osc_tools.py generate_exif -exif_source metadata -p ~/OSC_seqences/Sequence1
-
-# Exif generation for custom geojson + imagery 
-python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderContainingGeoJsonAndImages
 ```
 
+#### Option I. From an KV metadata format file
+```
+# Exif generation for mobile recorded sequence having metadata files in ~/OSC_sequences/Sequence1 folder
+python osc_tools.py generate_exif -exif_source metadata -p ~/OSC_seqences/Sequence1
+
+```
+
+#### Option II. From custom geojson file and the images that require the exif data
+
+```
+# Exif generation for custom geojson + imagery 
+python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderContainingGeoJsonAndImages
+
+```
 <details>
-  <summary>Custom geojson required fields example:</summary>
+ <summary>Folder structure</summary> 
+   ~/CustomFolderContainingGeoJsonAndImages <br/> 
+   ~/CustomFolderContainingGeoJsonAndImages/a_file.geojson    <br/> 
+   ~/CustomFolderContainingGeoJsonAndImages/folder_with_images <br/> 
+   ~/CustomFolderContainingGeoJsonAndImages/folder_with_images/image1.jpg
+   ~/CustomFolderContainingGeoJsonAndImages/folder_with_images/image2.jpg
+   ~/CustomFolderContainingGeoJsonAndImages/folder_with_images/image3.jpg
+</details>
+
+
+<details>
+  <summary>Expand to see the custom geojson sample:</summary>
  
  ```javascript
       
@@ -75,7 +93,7 @@ python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderC
                "type":"Feature",
                "properties":{
                   "order":1.0,
-                  "path":"relative_image_path_1.jpg",
+                  "path":"folder_with_images/image1.jpg",
                   "direction":236.0,
                   "Lat":1.910309,
                   "Lon":1.503069,
@@ -90,7 +108,7 @@ python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderC
                "type":"Feature",
                "properties":{
                   "order":2.0,
-                  "path":"relative_image_path_2.jpg",
+                  "path":"folder_with_images/image2.jpg",
                   "direction":236.0,
                   "Lat":1.910199,
                   "Lon":1.502908,
@@ -105,7 +123,7 @@ python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderC
                "type":"Feature",
                "properties":{
                   "order":3.0,
-                  "path":"relative_image_path_3.jpg",
+                  "path":"folder_with_images/image3.jpg",
                   "direction":236.0,
                   "Lat":1.910096,
                   "Lon":1.502764,
@@ -126,7 +144,7 @@ python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderC
 </details>
 
 
-##### Docker
+### Docker Support
 To run the scripts inside a Docker container:
 ```
 make docker
