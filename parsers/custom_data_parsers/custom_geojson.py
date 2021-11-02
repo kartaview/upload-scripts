@@ -6,7 +6,6 @@ import datetime
 
 from geojson import load
 from io_storage.storage import Storage
-from parsers.base import BaseParser
 from parsers.geojson import GeoJsonParser
 from parsers.custom_data_parsers.custom_models import PhotoGeoJson
 from common.models import GPS, Compass, SensorItem
@@ -14,7 +13,7 @@ from common.models import GPS, Compass, SensorItem
 
 class FeaturePhotoGeoJsonParser(GeoJsonParser):
 
-    def __init__(self, file_path, storage):
+    def __init__(self, file_path: str, storage: Storage):
         super().__init__(file_path, storage)
         self._sensors: List[PhotoGeoJson] = []
         self._data_pointer: int = 0
@@ -35,19 +34,14 @@ class FeaturePhotoGeoJsonParser(GeoJsonParser):
                 self._sensors.append(photo)
         self._sensors.sort(key=lambda x: x.frame_index)
 
-    @classmethod
-    def valid_parser(cls, file_path: str, storage: Storage) -> BaseParser:
-        """this method will return a valid parser"""
-        return FeaturePhotoGeoJsonParser(file_path, storage)
-
     def items(self) -> List[SensorItem]:
-        return list(self._sensors)
+        return self._sensors
 
     def items_with_class(self, item_class: Type[SensorItem]) -> List[SensorItem]:
         if item_class not in self.compatible_sensors():
             return []
         if item_class is PhotoGeoJson:
-            return list(self._sensors)
+            return self._sensors
         if item_class is GPS:
             return [photo.gps for photo in self._sensors]
         if item_class is Compass:
