@@ -8,6 +8,8 @@ from common.models import CameraParameters, ExifParameters, CameraProjection
 
 class ItemParser:
     """ItemParser is a parser class that can parse a Metadata2.0 row and return a SensorItem"""
+
+    # pylint: disable=R0913
     def __init__(self, version: int,
                  formats: dict,
                  item_class,
@@ -18,6 +20,8 @@ class ItemParser:
         self.item_class = item_class
         self.item_name = item_name
         self.post_processing = post_processing
+
+    # pylint: enable=R0913
 
     def __eq__(self, other):
         if isinstance(other, ItemParser):
@@ -336,7 +340,7 @@ def camera_v1() -> ItemParser:
             version 1"""
     def type_conversion(camera: CameraParameters):
         camera.h_fov = float(camera.h_fov)
-        camera.v_fov = None  # TODO: Compute v_fov based on h_fov and resolution
+        camera.v_fov = None
         camera.projection = CameraProjection.PLAIN
 
     parser = ItemParser(1, {'h_fov': 0,

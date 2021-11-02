@@ -29,6 +29,7 @@ class OSCUser:
 class OSCPhoto:
     """this is a model class for a photo from OSC API"""
 
+    # pylint: disable=R0902
     def __init__(self):
         self.timestamp = None
         self.latitude = None
@@ -39,6 +40,7 @@ class OSCPhoto:
         self.image_name = None
         self.date_added = None
         self.yaw = None
+    # pylint: enable=R0902
 
     @classmethod
     def photo_from_json(cls, json):
@@ -71,6 +73,7 @@ class OSCPhoto:
 class OSCSequence:
     """this is a model class for a sequence from OSC API"""
 
+    # pylint: disable=R0902
     def __init__(self):
         self.photos: [OSCPhoto] = []
         self.local_id: str = None
@@ -81,6 +84,7 @@ class OSCSequence:
         self.longitude = None
         self.platform = None
         self.device = None
+    # pylint: enable=R0902
 
     @classmethod
     def sequence_from_json(cls, json):

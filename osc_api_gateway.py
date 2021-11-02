@@ -416,6 +416,7 @@ class OSCApi:
             LOGGER.debug("Received exception on video upload %s", str(ex))
             return False, ex
 
+    # pylint: disable=R0913,R0914
     def upload_photo(self, access_token,
                      sequence_id,
                      photo: OSCPhoto,
@@ -463,3 +464,4 @@ class OSCApi:
         except requests.RequestException as ex:
             LOGGER.debug("Received exception on photo upload %s", str(ex))
             return False, ex
+    # pylint: enable=R0913,R0914

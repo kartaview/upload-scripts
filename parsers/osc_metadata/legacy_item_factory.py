@@ -9,6 +9,7 @@ class ItemLegacyParser:
     """ItemLegacyParser is a parser class that can parse a Metadata1.x row and
     return a SensorItem"""
 
+    # pylint: disable=R0913
     def __init__(self,
                  metadata_format,
                  item_class,
@@ -23,6 +24,8 @@ class ItemLegacyParser:
         self._attributes_element_names = required_attributes_mapping
         self._optional_attributes_element_names = optional_attributes_mapping
         self._post_processing = post_processing
+
+    # pylint: enable=R0913
 
     def __eq__(self, other):
         if isinstance(other, ItemLegacyParser):

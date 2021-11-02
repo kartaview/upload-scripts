@@ -19,6 +19,7 @@ class MetadataParser(BaseParser):
     def __init__(self, file_path, storage: Storage):
         super().__init__(file_path, storage)
         self._data_pointer = 0
+        self._body_pointer = 0
         self._device_item: Optional[OSCDevice] = None
         self._metadata_version = None
         self._alias_definitions: Dict[str, SensorItemDefinition] = {}
@@ -113,8 +114,7 @@ class MetadataParser(BaseParser):
             return item_instances
 
     def serialize(self):
-        # TODO implement this
-        pass
+        raise NotImplementedError("MetadataParser serialize method is not implemented", self)
 
     # <editor-fold desc="Private methods">
 
@@ -253,8 +253,7 @@ class MetadataParserLegacy(MetadataParser):
         return self._metadata_version
 
     def serialize(self):
-        # TODO implement this
-        pass
+        raise NotImplementedError("MetadataParser serialize method is not implemented", self)
 
     # <editor-fold desc="Private Methods">
     def _configure_headers(self):
