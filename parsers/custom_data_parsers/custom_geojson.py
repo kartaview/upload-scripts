@@ -33,9 +33,9 @@ class FeaturePhotoGeoJsonParser(GeoJsonParser):
                 photo.compass = Compass()
                 photo.compass.compass = feature.properties['direction']
                 self._sensors.append(photo)
-            crs_string = geo_json.get('crs', {}).get('properties', {}).get("name", None)
+            crs_string = geo_json.get('crs', {}).get('properties', {}).get("name", "")
             crs_values = crs_string.split(":")
-            if crs_string and len(crs_values) == 7:
+            if len(crs_values) == 7:
                 self._version = crs_values[5]
 
         self._sensors.sort(key=lambda x: x.frame_index)
