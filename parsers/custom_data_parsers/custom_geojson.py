@@ -17,6 +17,7 @@ class FeaturePhotoGeoJsonParser(GeoJsonParser):
         super().__init__(file_path, storage)
         self._sensors: List[PhotoGeoJson] = []
         self._data_pointer: int = 0
+        self._version = "unknown"
         with self._storage.open(self.file_path, 'r') as geo_json_file:
             geo_json = load(geo_json_file)
             for feature in geo_json["features"]:
@@ -32,6 +33,11 @@ class FeaturePhotoGeoJsonParser(GeoJsonParser):
                 photo.compass = Compass()
                 photo.compass.compass = feature.properties['direction']
                 self._sensors.append(photo)
+            crs_string = geo_json.get('crs', {}).get('properties', {}).get("name", None)
+            crs_values = crs_string.split(":")
+            if crs_string and len(crs_values) == 7:
+                self._version = crs_values[5]
+
         self._sensors.sort(key=lambda x: x.frame_index)
 
     def items(self) -> List[SensorItem]:
@@ -63,7 +69,7 @@ class FeaturePhotoGeoJsonParser(GeoJsonParser):
         return None
 
     def format_version(self) -> Optional[str]:
-        return "unknown"
+        return self._version
 
     def start_new_reading(self):
         self._data_pointer = 0
