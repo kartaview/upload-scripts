@@ -84,7 +84,7 @@ class GPS(SensorItem):
 
     @classmethod
     def gps(cls, timestamp: float, latitude: float, longitude: float):
-        gps = GPS()
+        gps = cls()
         gps.timestamp = timestamp
         gps.latitude = latitude
         gps.longitude = longitude

@@ -49,11 +49,11 @@ class XMPParser(BaseParser):
         return []
 
     def format_version(self) -> Optional[str]:
-        print("XMP format version", self)
+        raise NotImplementedError(f"XMP format version - {self}")
 
     def serialize(self):
         """this method will write all the added items to file"""
-        print("XMP serialize is not implemented", self)
+        raise NotImplementedError(f"XMP serialize is not implemented - {self}")
 
     @classmethod
     def compatible_sensors(cls) -> List[Any]:
