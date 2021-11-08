@@ -3,7 +3,7 @@
 
 import logging
 import os
-from argparse import ArgumentParser, RawTextHelpFormatter, SUPPRESS
+from argparse import ArgumentParser, RawTextHelpFormatter, SUPPRESS, Namespace
 from login_controller import LoginController
 from osc_api_config import OSCAPISubDomain
 from osc_uploader import OSCUploadManager
@@ -123,11 +123,11 @@ def exif_generation_command(args):
     """Generate Exif from metadata"""
     path = args.path
     LOGGER.warning("Trying to generating exif for images at path...")
-    create_exif(path)
+    create_exif(path, args.exif_source)
     LOGGER.warning("Finished.")
 
 
-def get_args() -> list:
+def get_args() -> Namespace:
     """Method to create and configure a argument parser"""
     parser: ArgumentParser = ArgumentParser(prog='python osc_tools.py',
                                             formatter_class=RawTextHelpFormatter)
@@ -173,7 +173,7 @@ def create_parsers(subparsers: ArgumentParser):
     add_generate_exif_parser(subparsers)
 
 
-def add_upload_parser(subparsers: ArgumentParser):
+def add_upload_parser(subparsers):
     """Adds upload parser"""
     upload_parser = subparsers.add_parser('upload', formatter_class=RawTextHelpFormatter)
     upload_parser.set_defaults(func=upload_command)
@@ -195,14 +195,18 @@ def add_upload_parser(subparsers: ArgumentParser):
     _add_logging_argument(upload_parser)
 
 
-def add_generate_exif_parser(subparsers: ArgumentParser):
+def add_generate_exif_parser(subparsers):
     """Adds generate exif parser"""
     generate_parser = subparsers.add_parser('generate_exif', formatter_class=RawTextHelpFormatter)
     generate_parser.set_defaults(func=exif_generation_command)
     generate_parser.add_argument('-p',
                                  '--path',
                                  required=True,
-                                 help='Folder PATH with metadata file (OSC metadata, or custom geojson) and images')
+                                 help='Folder PATH with metadata file '
+                                      '(OSC metadata, or custom geojson) and images')
+    generate_parser.add_argument('--exif_source',
+                                 required=True,
+                                 choices=['metadata', "custom_geojson"])
     _add_logging_argument(generate_parser)
 
     return subparsers

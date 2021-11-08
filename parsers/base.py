@@ -15,42 +15,37 @@ class BaseParser(metaclass=abc.ABCMeta):
         self._data_pointer: Optional[int] = None
         self._storage = storage
 
-    @classmethod
-    def valid_parser(cls, file_path: str, storage: Storage):
-        """this method will return a valid parser"""
-        pass
-
     @abc.abstractmethod
     def next_item_with_class(self, item_class: Type[SensorItem]) -> Optional[SensorItem]:
         """this method will return a the next SensorItem found in the current file,
         of instance item_class"""
-        pass
 
+    @abc.abstractmethod
     def items_with_class(self, item_class: Type[SensorItem]) -> List[SensorItem]:
         """this method will return all SensorItems found in the current file,
          of instance item_class"""
-        return []
 
+    @abc.abstractmethod
     def next_item(self) -> Optional[SensorItem]:
         """this method will return a the next SensorItem found in the current file"""
-        pass
 
+    @abc.abstractmethod
     def items(self) -> List[SensorItem]:
         """this method will return all SensorItems found in the current file"""
-        pass
 
+    @abc.abstractmethod
     def format_version(self) -> Optional[str]:
         """this method will return the format version"""
-        pass
 
+    @abc.abstractmethod
     def serialize(self):
         """this method will write all the added items to file"""
-        pass
 
-    def compatible_sensors(self) -> List[Any]:
+    @classmethod
+    @abc.abstractmethod
+    def compatible_sensors(cls) -> List[Any]:
         """this method will return all SensorItem classes that are compatible
         with the current parser"""
-        pass
 
     def add_items(self, items: List[SensorItem]):
         """this method will add items to be serialized"""

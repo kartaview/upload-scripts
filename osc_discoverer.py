@@ -3,11 +3,13 @@
 import os
 import json
 import logging
+from typing import List, cast
+
 import constants
 from common.models import GPS, OSCDevice
 from io_storage.storage import Local
 from parsers.exif import ExifParser
-from parsers.osc_metadata.parser import MetadataParser
+from parsers.osc_metadata.parser import metadata_parser
 from visual_data_discover import VisualDataDiscoverer
 from visual_data_discover import ExifPhotoDiscoverer
 from visual_data_discover import PhotoMetadataDiscoverer
@@ -26,11 +28,8 @@ class OSCUploadProgressDiscoverer:
             return self == other
         return False
 
-    def __hash__(self):
-        return super().__hash__()
-
     @classmethod
-    def discover(cls, path: str) -> [str]:
+    def discover(cls, path: str) -> List[str]:
         """this method will discover a upload progress file and parse it to get a progress list."""
         LOGGER.debug("will read uploaded indexes")
         progress_file_path = path + "/" + constants.PROGRESS_FILE_NAME
@@ -49,9 +48,6 @@ class OSCMetadataDiscoverer:
         if isinstance(other, OSCMetadataDiscoverer):
             return self == other
         return False
-
-    def __hash__(self):
-        return super().__hash__()
 
     @classmethod
     def discover(cls, path: str) -> str:
@@ -145,19 +141,19 @@ class SequenceDiscoverer:
     def _find_latitude_longitude_device_info(self, sequence: Sequence):
         if not sequence.online_id:
             if sequence.osc_metadata and isinstance(self.validator, SequenceMetadataValidator):
-                parser = MetadataParser.valid_parser(sequence.osc_metadata, Local())
-                gps = parser.next_item_with_class(GPS)
+                parser = metadata_parser(sequence.osc_metadata, Local())
+                gps = cast(GPS, parser.next_item_with_class(GPS))
                 if gps:
                     sequence.latitude = gps.latitude
                     sequence.longitude = gps.longitude
-                device_info: OSCDevice = parser.next_item_with_class(OSCDevice)
+                device_info: OSCDevice = cast(OSCDevice, parser.next_item_with_class(OSCDevice))
                 if device_info:
                     sequence.device = device_info.device_raw_name
                     sequence.platform = device_info.platform_name
             elif sequence.visual_items:
                 visual_item: VisualData = sequence.visual_items[0]
                 if isinstance(self.visual_data, ExifPhotoDiscoverer):
-                    parser = ExifParser.valid_parser(visual_item.path, Local())
+                    parser = ExifParser(visual_item.path, Local())
                     device_info: OSCDevice = parser.next_item_with_class(OSCDevice)
                     if device_info:
                         sequence.device = device_info.device_raw_name
@@ -215,4 +211,3 @@ class SequenceDiscovererFactory:
         finished_finder.osc_metadata = None
         finished_finder.validator = SequenceFinishedValidator()
         return finished_finder
-

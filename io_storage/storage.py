@@ -1,3 +1,9 @@
+"""
+This module enables the use of custom storage implementations e.g. cloud storage solutions without
+changing the functionality of the scripts.
+If one needs support for other type of storages they can just implement the Storage interface and
+use the new storage type.
+"""
 import abc
 import hashlib
 import os
@@ -46,8 +52,8 @@ class Storage(metaclass=abc.ABCMeta):
 
     def unique_file_identifier(self, file_path: str, block_size: int = 165536) -> str:
         md5_hash = hashlib.md5()
-        with self.open(file_path, "rb") as f:
-            for block in iter(lambda: f.read(block_size), b""):
+        with self.open(file_path, "rb") as file:
+            for block in iter(lambda: file.read(block_size), b""):
                 md5_hash.update(block)
         return str(md5_hash.hexdigest())
 
@@ -104,8 +110,8 @@ class Local(Storage):
     def isfile(self, path: str) -> bool:
         return os.path.isfile(path)
 
-    def open(self, filename: str, mode='r'):
-        return open(filename, mode)
+    def open(self, path: str, mode='r'):
+        return open(path, mode)
 
     def abs_path(self, path: str) -> str:
         return os.path.abspath(path)
@@ -124,4 +130,3 @@ class Local(Storage):
 
     def remove(self, path: str):
         return os.remove(path)
-

@@ -9,6 +9,7 @@ class ItemLegacyParser:
     """ItemLegacyParser is a parser class that can parse a Metadata1.x row and
     return a SensorItem"""
 
+    # pylint: disable=R0913
     def __init__(self,
                  metadata_format,
                  item_class,
@@ -23,6 +24,8 @@ class ItemLegacyParser:
         self._attributes_element_names = required_attributes_mapping
         self._optional_attributes_element_names = optional_attributes_mapping
         self._post_processing = post_processing
+
+    # pylint: enable=R0913
 
     def __eq__(self, other):
         if isinstance(other, ItemLegacyParser):
@@ -243,15 +246,7 @@ def device_motion_parse(metadata_format):
     """device motion parser"""
     def type_conversions(device_motion: DeviceMotion):
         timestamp_error(device_motion)
-        device_motion.acceleration.acc_x = float(device_motion.acceleration.acc_x)
-        device_motion.acceleration.acc_y = float(device_motion.acceleration.acc_y)
-        device_motion.acceleration.acc_z = float(device_motion.acceleration.acc_z)
-        device_motion.gravity.acc_x = float(device_motion.gravity.acc_x)
-        device_motion.gravity.acc_y = float(device_motion.gravity.acc_y)
-        device_motion.gravity.acc_z = float(device_motion.gravity.acc_z)
-        device_motion.gyroscope.yaw = float(device_motion.gyroscope.yaw)
-        device_motion.gyroscope.pitch = float(device_motion.gyroscope.pitch)
-        device_motion.gyroscope.roll = float(device_motion.gyroscope.roll)
+        DeviceMotion.type_conversions(device_motion)
 
     return ItemLegacyParser(metadata_format,
                             DeviceMotion,

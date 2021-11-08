@@ -56,7 +56,8 @@ class LoginController:
         if self.osm_token == "" or self.osm_token_secret == "":
             # osm authentication
             LOGGER.debug("Will start osm auth")
-            osm_token, osm_secret = osm_auth(self.__prompt_user_for_login, self.__handle_osm_auth_error)
+            osm_token, osm_secret = osm_auth(self.__prompt_user_for_login,
+                                             self.__handle_osm_auth_error)
             LOGGER.debug("OSM auth done")
             if osm_token is None or osm_secret is None:
                 LOGGER.debug("osm auth failed will retry")

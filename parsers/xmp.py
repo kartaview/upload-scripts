@@ -1,9 +1,12 @@
+"""
+This module is used to read XMP data from images.
+"""
 from typing import Optional, Tuple, List, Any, Type
+from xml.etree.ElementTree import fromstring, ParseError
 
 from io_storage.storage import Storage
 from parsers.base import BaseParser
 from common.models import SensorItem, CameraParameters, projection_type_from_name
-from xml.etree.ElementTree import fromstring, ParseError
 
 
 class XMPParser(BaseParser):
@@ -17,15 +20,11 @@ class XMPParser(BaseParser):
 
     def _read_xmp(self) -> str:
         with self._storage.open(self.file_path, "rb") as image:
-            d = image.read()
-            xmp_start = d.find(b'<x:xmpmeta')
-            xmp_end = d.find(b'</x:xmpmeta')
-            xmp_str = d[xmp_start:xmp_end + 12]
+            data = image.read()
+            xmp_start = data.find(b'<x:xmpmeta')
+            xmp_end = data.find(b'</x:xmpmeta')
+            xmp_str = data[xmp_start:xmp_end + 12]
         return xmp_str
-
-    @classmethod
-    def valid_parser(cls, file_path: str, storage: Storage):
-        return XMPParser(file_path, storage)
 
     def next_item_with_class(self, item_class: Type[SensorItem]) -> Optional[SensorItem]:
         if item_class == CameraParameters:
@@ -50,13 +49,14 @@ class XMPParser(BaseParser):
         return []
 
     def format_version(self) -> Optional[str]:
-        return None
+        raise NotImplementedError(f"XMP format version - {self}")
 
     def serialize(self):
         """this method will write all the added items to file"""
-        pass
+        raise NotImplementedError(f"XMP serialize is not implemented - {self}")
 
-    def compatible_sensors(self) -> List[Any]:
+    @classmethod
+    def compatible_sensors(cls) -> List[Any]:
         return [CameraParameters]
 
     def _camera_item(self) -> Optional[CameraParameters]:
@@ -70,7 +70,8 @@ class XMPParser(BaseParser):
             root = fromstring(self.xmp_str)
             for element in root.findall("*"):
                 for rdf in element.findall("*"):
-                    full_pano_image_width, cropped_area_image_width_pixels, projection = self.compute_camera_items(rdf)
+                    [full_pano_image_width, cropped_area_image_width_pixels,
+                     projection] = self.compute_camera_items(rdf)
 
                     if cropped_area_image_width_pixels is not None \
                             and full_pano_image_width is not None \
@@ -83,10 +84,10 @@ class XMPParser(BaseParser):
             if cropped_area_image_width_pixels is not None \
                     and full_pano_image_width is not None \
                     and projection is not None:
-                camera_parameters = CameraParameters()
-                camera_parameters.h_fov = cropped_area_image_width_pixels * 360 / full_pano_image_width
-                camera_parameters.projection = projection_type_from_name(projection)
-                return camera_parameters
+                parameters = CameraParameters()
+                parameters.h_fov = cropped_area_image_width_pixels * 360 / full_pano_image_width
+                parameters.projection = projection_type_from_name(projection)
+                return parameters
             return None
         except ParseError:
             return None
@@ -105,7 +106,9 @@ class XMPParser(BaseParser):
         return full_pano_image_width, cropped_area_image_width_pixels, projection
 
     @staticmethod
-    def compute_camera_items_for_garmin(xml_elements) -> Tuple[Optional[int], Optional[int], Optional[str]]:
+    def compute_camera_items_for_garmin(xml_elements) -> Tuple[Optional[int],
+                                                               Optional[int],
+                                                               Optional[str]]:
         full_pano_image_width, cropped_area_image_width_pixels, projection = (None, None, None)
         for xml_child in xml_elements.findall("*"):
             if "FullPanoWidthPixels" in xml_child.tag:

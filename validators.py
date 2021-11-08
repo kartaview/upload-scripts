@@ -1,10 +1,12 @@
 """This file will contain all validators used to validate a sequence"""
 
 import logging
+from typing import cast
+
 import constants
 from common.models import PhotoMetadata, OSCDevice, RecordingType
 from io_storage.storage import Local
-from parsers.osc_metadata.parser import MetadataParser
+from parsers.osc_metadata.parser import MetadataParser, metadata_parser
 from osc_models import Sequence, Video, Photo
 
 LOGGER = logging.getLogger('osc_tools.validators')
@@ -17,9 +19,6 @@ class SequenceValidator:
         if isinstance(other, SequenceValidator):
             return self == other
         return False
-
-    def __hash__(self):
-        return super().__hash__()
 
     def validate(self, sequence: Sequence) -> bool:
         """This method returns is a bool. If it returns True the sequence is valid if returns
@@ -48,9 +47,6 @@ class SequenceMetadataValidator(SequenceValidator):
             return self == other
         return False
 
-    def __hash__(self):
-        return super().__hash__()
-
     def validate(self, sequence: Sequence) -> bool:
         """This method returns is a bool, If it returns True the sequence is valid if returns
                 False the sequence is not valid and it is not usable for OSC servers.
@@ -61,18 +57,20 @@ class SequenceMetadataValidator(SequenceValidator):
         if sequence.osc_metadata and not sequence.online_id:
             metadata_path = sequence.osc_metadata
             LOGGER.debug("        Validating Metadata %s", metadata_path)
-            parser: MetadataParser = MetadataParser.valid_parser(metadata_path, Local())
+            parser: MetadataParser = metadata_parser(metadata_path, Local())
             photo_item = parser.next_item_with_class(PhotoMetadata)
             if not photo_item:
                 LOGGER.debug(" No photo in metadata")
                 return False
-            device: OSCDevice = parser.next_item_with_class(OSCDevice)
+            device: OSCDevice = cast(OSCDevice, parser.next_item_with_class(OSCDevice))
             visual_item = sequence.visual_items[0]
 
             if device is not None and device.recording_type is not None:
-                if device.recording_type == RecordingType.VIDEO and not isinstance(visual_item, Video):
+                if device.recording_type == RecordingType.VIDEO and not isinstance(visual_item,
+                                                                                   Video):
                     return False
-                if device.recording_type == RecordingType.PHOTO and not isinstance(visual_item, Photo):
+                if device.recording_type == RecordingType.PHOTO and not isinstance(visual_item,
+                                                                                   Photo):
                     return False
         return True
 
@@ -85,9 +83,6 @@ class SequenceFinishedValidator(SequenceValidator):
         if isinstance(other, SequenceFinishedValidator):
             return self == other
         return False
-
-    def __hash__(self):
-        return super().__hash__()
 
     def validate(self, sequence: Sequence) -> bool:
         """this method will return true if a sequence is already uploaded and was flagged

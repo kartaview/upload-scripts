@@ -2,11 +2,12 @@
 from typing import Optional, Dict, List, Tuple, Type
 
 from common.models import SensorItem, PhotoMetadata, ExifParameters, Attitude, Acceleration
-from common.models import Compass, CameraParameters, DeviceMotion, OBD, GPS, Pressure, Gravity, RecordingType
+from common.models import Compass, CameraParameters, DeviceMotion, OBD, GPS, Pressure, Gravity
+from common.models import RecordingType, OSCDevice
 from io_storage.storage import Storage
 
 from parsers.base import BaseParser
-from parsers.osc_metadata.item_factory import SensorItemDefinition, ItemParser, OSCDevice
+from parsers.osc_metadata.item_factory import SensorItemDefinition, ItemParser
 import parsers.osc_metadata.legacy_item_factory as legacy
 from parsers.osc_metadata.legacy_item_factory import ItemLegacyParser
 
@@ -17,21 +18,12 @@ class MetadataParser(BaseParser):
 
     def __init__(self, file_path, storage: Storage):
         super().__init__(file_path, storage)
+        self._data_pointer = 0
+        self._body_pointer = 0
         self._device_item: Optional[OSCDevice] = None
         self._metadata_version = None
         self._alias_definitions: Dict[str, SensorItemDefinition] = {}
         self._configure_headers()
-
-    @classmethod
-    def valid_parser(cls, file_path, storage: Storage):
-        """this method will return a valid metadata parser"""
-        with storage.open(file_path) as metadata_file:
-            header_line = metadata_file.readline()
-            if "METADATA:2.0" in header_line:
-                # parse this file with MetadataV2 parser
-                return MetadataParser(file_path, storage)
-            # fallback on MetadataParserLegacy
-            return MetadataParserLegacy(file_path, storage)
 
     def format_version(self) -> Optional[str]:
         """According to the documentation the version is found in the first line
@@ -103,7 +95,8 @@ class MetadataParser(BaseParser):
 
             return parser.parse(item_data, timestamp)
 
-    def compatible_sensors(self):
+    @classmethod
+    def compatible_sensors(cls):
         return [PhotoMetadata, GPS, Acceleration, Compass, OBD, Pressure, Attitude,
                 Gravity, OSCDevice, DeviceMotion, CameraParameters, ExifParameters]
 
@@ -121,8 +114,7 @@ class MetadataParser(BaseParser):
             return item_instances
 
     def serialize(self):
-        # TODO implement this
-        pass
+        raise NotImplementedError("MetadataParser serialize method is not implemented", self)
 
     # <editor-fold desc="Private methods">
 
@@ -247,7 +239,8 @@ class MetadataParserLegacy(MetadataParser):
         self._aggregate_photo_data(all_items)
         return all_items
 
-    def compatible_sensors(self):
+    @classmethod
+    def compatible_sensors(cls):
         return [PhotoMetadata, GPS, Acceleration, Compass, OBD, Pressure, Attitude,
                 Gravity, OSCDevice, DeviceMotion]
 
@@ -260,8 +253,7 @@ class MetadataParserLegacy(MetadataParser):
         return self._metadata_version
 
     def serialize(self):
-        # TODO implement this
-        pass
+        raise NotImplementedError("MetadataParser serialize method is not implemented", self)
 
     # <editor-fold desc="Private Methods">
     def _configure_headers(self):
@@ -541,3 +533,14 @@ class MetadataParserLegacy(MetadataParser):
         return None
 
     # </editor-fold>
+
+
+def metadata_parser(file_path, storage: Storage) -> MetadataParser:
+    """this method will return a valid metadata parser"""
+    with storage.open(file_path) as metadata_file:
+        header_line = metadata_file.readline()
+        if "METADATA:2.0" in header_line:
+            # parse this file with MetadataV2 parser
+            return MetadataParser(file_path, storage)
+        # fallback on MetadataParserLegacy
+        return MetadataParserLegacy(file_path, storage)
