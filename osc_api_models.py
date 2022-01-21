@@ -189,8 +189,8 @@ class OSCSequence:
         sequence.longitude = json.get('currentLng', None)
         sequence.app_version = json.get('app_version', None)
         sequence_date_added = json.get('dateAdded', None)
-        sequence.total_images = int(json.get('countActivePhotos')) if bool(json.get(
-            'countActivePhotos')) else None
+        sequence.total_images = int(json.get('countActivePhotos')) if json.get(
+            'countActivePhotos') is not None else None
         sequence.is_video = True if json.get('isVideo', None) == "1" else False
         sequence.camera_parameters = OSCCameraParameters.from_json(json["cameraParameters"])
         if sequence_date_added is not None:
