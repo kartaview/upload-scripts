@@ -4,12 +4,10 @@ This module is created in order to support the download of user uploaded data
 
 import logging
 import os
-
 from concurrent.futures import (
     as_completed,
     ThreadPoolExecutor,
 )
-
 from typing import List, Tuple
 
 from tqdm import tqdm

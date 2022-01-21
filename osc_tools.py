@@ -144,7 +144,7 @@ def get_args() -> Namespace:
 
     subparsers = parser.add_subparsers(title='These are the available OSC commands',
                                        description='upload          Uploads sequences from '
-                                                   'a given path to OpenStreetCam\n'
+                                                   'a given path to KartaView\n'
                                                    'generate_exif   Generates Exif info for '
                                                    'each image from a metadata file\n'
                                                    'download        Download the data that was '
