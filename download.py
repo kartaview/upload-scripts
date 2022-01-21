@@ -1,3 +1,7 @@
+"""
+This module is created in order to support the download of user uploaded data
+"""
+
 import logging
 import os
 
@@ -44,12 +48,12 @@ def download_user_images(path):
         sequence_path = os.path.join(user_path, str(sequence.online_id))
         os.makedirs(sequence_path, exist_ok=True)
 
-        download_success, photos = _download_photo_sequence(osc_api,
-                                                            sequence,
-                                                            sequence_path,
-                                                            add_gps_to_exif=True)
+        download_success, _ = _download_photo_sequence(osc_api,
+                                                       sequence,
+                                                       sequence_path,
+                                                       add_gps_to_exif=True)
         if not download_success:
-            LOGGER.info("There was an error downloading the sequence: " + str(sequence.online_id))
+            LOGGER.info("There was an error downloading the sequence: %s", str(sequence.online_id))
             continue
 
 
@@ -81,7 +85,7 @@ def _download_photo_sequence(osc_api: OSCApi,
             download_success = download_success and photo_success
             download_bar.update(1)
     if not download_success:
-        LOGGER.info("Download failed for sequence " + str(sequence.online_id))
+        LOGGER.info("Download failed for sequence %s", str(sequence.online_id))
         return False, []
     return True, photos
 
