@@ -39,14 +39,14 @@ def download_user_images(to_path):
         return
 
     user_dir_path = os.path.join(to_path, user.name)
-    os.makedirs(user_path, exist_ok=True)
+    os.makedirs(user_dir_path, exist_ok=True)
 
     # download each sequence
     for sequence in tqdm(sequences, desc="Downloading Sequences"):
         if sequence is None or isinstance(sequence, BaseException):
             continue
 
-        sequence_path = os.path.join(user_path, str(sequence.online_id))
+        sequence_path = os.path.join(user_dir_path, str(sequence.online_id))
         os.makedirs(sequence_path, exist_ok=True)
 
         download_success, _ = _download_photo_sequence(osc_api,
