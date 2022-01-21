@@ -84,6 +84,9 @@ class Storage(metaclass=abc.ABCMeta):
     def remove(self, path: str):
         pass
 
+    def put(self, data, destination):
+        raise NotImplementedError()
+
 
 class Local(Storage):
 
@@ -130,3 +133,7 @@ class Local(Storage):
 
     def remove(self, path: str):
         return os.remove(path)
+
+    def put(self, data, destination):
+        with open(destination, "wb") as out_file:
+            out_file.write(data)
