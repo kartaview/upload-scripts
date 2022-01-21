@@ -42,7 +42,7 @@ def download_user_images(to_path):
     os.makedirs(user_dir_path, exist_ok=True)
 
     # download each sequence
-    for sequence in tqdm(sequences, desc="Downloading Sequences"):
+    for sequence in tqdm(sequences, desc="Downloading sequences"):
         if sequence is None or isinstance(sequence, BaseException):
             continue
 
@@ -74,7 +74,7 @@ def _download_photo_sequence(osc_api: OSCApi,
     # download photos
     download_success = True
     download_bar = tqdm(total=len(photos),
-                        desc="Downloading from sequence " + str(sequence.online_id))
+                        desc="Downloading sequence " + str(sequence.online_id))
     with ThreadPoolExecutor(max_workers=10) as executors:
         futures = [executors.submit(_download_photo,
                                     photo,
