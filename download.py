@@ -26,7 +26,7 @@ LOGGER = logging.getLogger('osc_tools.osc_utils')
 
 
 def download_user_images(to_path):
-    login_controller = LoginController(OSCAPISubDomain.PRODUCTION)  # production environement
+    login_controller = LoginController(OSCAPISubDomain.PRODUCTION)
     # login to get the valid user
     user = login_controller.login()
     osc_api = login_controller.osc_api
