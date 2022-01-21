@@ -11,6 +11,7 @@ from typing import Tuple, Optional, List
 import requests
 import constants
 import osc_api_config
+from io_storage.storage import Storage
 from osc_api_config import OSCAPISubDomain
 from osc_api_models import OSCSequence, OSCPhoto, OSCUser
 
@@ -40,6 +41,45 @@ def _version() -> str:
 
 def _website(url: str) -> str:
     return url.replace("-api", "").replace("api.", "")
+
+
+class OSCAPIResource:
+
+    @classmethod
+    def base_url(cls, env: OSCAPISubDomain):
+        return _osc_url(env)
+
+    @classmethod
+    def video(cls, env: OSCAPISubDomain, video_id=None) -> str:
+        if video_id is None:
+            return _osc_url(env) + "/" + "2.0/video/"
+        return _osc_url(env) + "/" + "2.0/video/" + str(video_id)
+
+    @classmethod
+    def photo_part(cls, env: OSCAPISubDomain) -> str:
+        return _osc_url(env) + "/" + "2.0/photo-part/"
+
+    @classmethod
+    def photo(cls, env: OSCAPISubDomain, photo_id=None) -> str:
+        if photo_id is None:
+            return _osc_url(env) + "/" + "2.0/photo/"
+        return _osc_url(env) + "/" + "2.0/photo/" + str(photo_id)
+
+    @classmethod
+    def sequence(cls, env: OSCAPISubDomain, sequence_id=None) -> str:
+        if sequence_id is None:
+            return _osc_url(env) + "/2.0/sequence/"
+        return _osc_url(env) + "/2.0/sequence/" + str(sequence_id)
+
+    @classmethod
+    def sequence_details(cls, env: OSCAPISubDomain, sequence_id=None) -> str:
+        return _osc_url(env) + "/details/" + str(sequence_id)
+
+    @classmethod
+    def user(cls, env: OSCAPISubDomain, user_name=None) -> str:
+        if user_name is None:
+            return _osc_url(env) + "/" + "2.0/user/"
+        return _osc_url(env) + "/" + "2.0/user/" + str(user_name)
 
 
 class OSCApiMethods:
@@ -202,28 +242,33 @@ class OSCApi:
 
         return user, None
 
-    def get_photos(self, sequence_id: int) -> Tuple[List[OSCPhoto], Exception]:
-        """this method will return a list of photo objects for a sequence id"""
+    def get_photos(self, sequence_id, page=None) -> Tuple[List[OSCPhoto], Optional[Exception]]:
         try:
-            parameters = {'sequenceId': sequence_id}
-            login_url = OSCApiMethods.photo_list(self.environment)
-            response = requests.post(url=login_url, data=parameters)
-            json_response = response.json()
-            missing_field = None
-            if 'osv' not in json_response:
-                missing_field = "osv"
-            elif 'photos' not in json_response['osv']:
-                missing_field = "photos"
-            else:
-                photos = []
-                photos_json = json_response['osv']['photos']
-                for photo_json in photos_json:
+            photo_url = OSCAPIResource.photo(self.environment)
+            has_more_data = True
+            photos = []
+            current_page = page
+            if page is None or page < 1:
+                current_page = 1
+            while has_more_data:
+                response = requests.get(photo_url,
+                                        params={"sequenceId": sequence_id,
+                                                "page": current_page,
+                                                "itemsPerPage": 500})
+                json_response = response.json()
+                result = json_response.get("result", {})
+                photo_list = result.get("data", [])
+                for photo_json in photo_list:
                     photo = OSCPhoto.photo_from_json(photo_json)
                     photos.append(photo)
-                return photos, missing_field
+                has_more_data = result.get("hasMoreData", False)
+                if page is not None:
+                    break
+                if has_more_data:
+                    current_page += 1
+            return photos, None
         except requests.RequestException as ex:
             return [], ex
-        return [], Exception("OSC API bug. OSCPhoto missing field:" + missing_field)
 
     def download_all_images(self, photo_list: [OSCPhoto],
                             track_path: str,
@@ -465,3 +510,40 @@ class OSCApi:
             LOGGER.debug("Received exception on photo upload %s", str(ex))
             return False, ex
     # pylint: enable=R0913,R0914
+
+    def get_sequence(self, sequence_id) -> Tuple[Optional[OSCSequence], Optional[Exception]]:
+        try:
+            sequence_url = OSCAPIResource.sequence(self.environment, sequence_id)
+            response = requests.get(sequence_url)
+            response.raise_for_status()
+        except requests.RequestException as ex:
+            return None, ex
+
+        json_response = response.json()
+        if json_response['status']['apiCode'] != 600:
+            return None, Exception(json_response['status']['apiMessage'])
+
+        result = json_response.get("result", {})
+        sequence_json = result.get("data", {})
+        sequence = OSCSequence.from_json(sequence_json)
+        return sequence, None
+
+    def download_resource(self,
+                          resource_url: str,
+                          file_path: str,
+                          storage: Storage,
+                          override=False) -> Tuple[bool, Optional[Exception]]:
+        """this method will download a metadata file of a sequence to the specified path.
+        If there is a file at that path by default no override will be made.
+        auth[0] is basic http auth user
+        auth[1] is basic http auth password """
+        if not override and storage.isfile(file_path):
+            return True, None
+        try:
+            with requests.get(resource_url) as response:
+                response.raise_for_status()
+                storage.put(response.content, file_path + "partial")
+                storage.rename(file_path + "partial", file_path)
+            return True, None
+        except requests.RequestException as ex:
+            return False, ex

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Tools developed by OpenStreetCam to help contributors."""
+"""Tools developed by KartaView to help contributors."""
 
 import logging
 import os
 from argparse import ArgumentParser, RawTextHelpFormatter, SUPPRESS, Namespace
+
+from download import download_user_images
 from login_controller import LoginController
 from osc_api_config import OSCAPISubDomain
 from osc_uploader import OSCUploadManager
@@ -127,16 +129,26 @@ def exif_generation_command(args):
     LOGGER.warning("Finished.")
 
 
+def download_current_user_data(args):
+    """Download current user data if no user the user will be promted to login"""
+    path = args.path
+    LOGGER.debug("Started download current user data")
+    download_user_images(path)
+    LOGGER.warning("Done download current user data.")
+
+
 def get_args() -> Namespace:
     """Method to create and configure a argument parser"""
     parser: ArgumentParser = ArgumentParser(prog='python osc_tools.py',
                                             formatter_class=RawTextHelpFormatter)
 
     subparsers = parser.add_subparsers(title='These are the available OSC commands',
-                                       description='upload          Uploads sequences from a given'
-                                                   ' path to OpenStreetCam\n'
-                                                   'generate_exif   Generates Exif info for each '
-                                                   'image from a metadata file',
+                                       description='upload          Uploads sequences from '
+                                                   'a given path to OpenStreetCam\n'
+                                                   'generate_exif   Generates Exif info for '
+                                                   'each image from a metadata file\n'
+                                                   'download        Download the data that was '
+                                                   'uploaded by your user',
                                        dest='sub command')
     subparsers.required = True
     create_parsers(subparsers)
@@ -171,6 +183,7 @@ def create_parsers(subparsers: ArgumentParser):
     """Add all available parsers"""
     add_upload_parser(subparsers)
     add_generate_exif_parser(subparsers)
+    add_download_parser(subparsers)
 
 
 def add_upload_parser(subparsers):
@@ -208,6 +221,20 @@ def add_generate_exif_parser(subparsers):
                                  required=True,
                                  choices=['metadata', "custom_geojson"])
     _add_logging_argument(generate_parser)
+
+    return subparsers
+
+
+def add_download_parser(subparsers):
+    """Adds download user data parser"""
+    download_parser = subparsers.add_parser('download',
+                                            formatter_class=RawTextHelpFormatter)
+    download_parser.set_defaults(func=download_current_user_data)
+    download_parser.add_argument('-p',
+                                 '--path',
+                                 required=True,
+                                 help='Folder PATH to download your data')
+    _add_logging_argument(download_parser)
 
     return subparsers
 
