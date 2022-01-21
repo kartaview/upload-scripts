@@ -25,18 +25,20 @@ from parsers.exif import ExifParser
 LOGGER = logging.getLogger('osc_tools.osc_utils')
 
 
-def download_user_images(path):
-    configure_login = LoginController(OSCAPISubDomain.PRODUCTION)  # production environement
+def download_user_images(to_path):
+    login_controller = LoginController(OSCAPISubDomain.PRODUCTION)  # production environement
     # login to get the valid user
-    user = configure_login.login()
-    osc_api = configure_login.osc_api
+    user = login_controller.login()
+    osc_api = login_controller.osc_api
 
     # get all the sequneces for this user
     sequences, error = osc_api.user_sequences(user.name)
     if error:
         LOGGER.info("Could not get sequences for the current user, try again or report a issue on "
                     "github")
-    user_path = os.path.join(path, user.name)
+        return
+
+    user_dir_path = os.path.join(to_path, user.name)
     os.makedirs(user_path, exist_ok=True)
 
     # download each sequence
@@ -98,6 +100,9 @@ def _download_photo(photo: OSCPhoto,
     photo_success, error = osc_api.download_resource(photo.photo_url(),
                                                      photo_download_name,
                                                      local_storage)
+    if error or not photo_success:
+        LOGGER.debug("Failed to download image: %s", photo.photo_url())
+
     if add_gps_to_exif:
         parser = ExifParser(photo_download_name, local_storage)
         if len(parser.items_with_class(GPS)) == 0:

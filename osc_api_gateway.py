@@ -533,10 +533,6 @@ class OSCApi:
                           file_path: str,
                           storage: Storage,
                           override=False) -> Tuple[bool, Optional[Exception]]:
-        """this method will download a metadata file of a sequence to the specified path.
-        If there is a file at that path by default no override will be made.
-        auth[0] is basic http auth user
-        auth[1] is basic http auth password """
         if not override and storage.isfile(file_path):
             return True, None
         try:
