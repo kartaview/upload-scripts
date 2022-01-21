@@ -528,8 +528,8 @@ class OSCApi:
         sequence = OSCSequence.from_json(sequence_json)
         return sequence, None
 
-    def download_resource(self,
-                          resource_url: str,
+    @staticmethod
+    def download_resource(resource_url: str,
                           file_path: str,
                           storage: Storage,
                           override=False) -> Tuple[bool, Optional[Exception]]:
