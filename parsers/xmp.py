@@ -57,28 +57,49 @@ class XMPParser(BaseParser):
     def compatible_sensors(cls) -> List[Any]:
         return [CameraParameters]
 
+    def _recursive_get_camera_item(self, root,
+                                   full_pano_image_width=None,
+                                   cropped_area_image_width_pixels=None,
+                                   projection=None):
+        elements = root.findall("*")
+        for element in elements:
+            [full_pano_image_width, cropped_area_image_width_pixels,
+             projection] = self.compute_camera_items(element, full_pano_image_width,
+                                                     cropped_area_image_width_pixels,
+                                                     projection)
+            if None not in [cropped_area_image_width_pixels, full_pano_image_width,
+                            projection]:
+                return full_pano_image_width, cropped_area_image_width_pixels, projection
+            [full_pano_image_width, cropped_area_image_width_pixels,
+             projection] = self.compute_camera_items_for_garmin(element,
+                                                                full_pano_image_width,
+                                                                cropped_area_image_width_pixels,
+                                                                projection)
+            if None not in [cropped_area_image_width_pixels, full_pano_image_width,
+                            projection]:
+                return full_pano_image_width, cropped_area_image_width_pixels, projection
+
+            sub_elements = element.findall("*")
+            for sub_element in sub_elements:
+                [f_pano_image_width, c_area_image_width_pixels,
+                 sub_projection] = self._recursive_get_camera_item(sub_element,
+                                                                   full_pano_image_width,
+                                                                   cropped_area_image_width_pixels,
+                                                                   projection)
+                if None not in [cropped_area_image_width_pixels or c_area_image_width_pixels,
+                                full_pano_image_width or f_pano_image_width,
+                                projection or sub_projection]:
+                    return full_pano_image_width or f_pano_image_width, \
+                           cropped_area_image_width_pixels or c_area_image_width_pixels, \
+                           projection or sub_projection
+
+        return full_pano_image_width, cropped_area_image_width_pixels, projection
+
     def _camera_item(self) -> Optional[CameraParameters]:
         try:
-            projection = None
-            full_pano_image_width = None
-
-            # cropped_area_image_height_pixels = None
-            cropped_area_image_width_pixels = None
-
             root = fromstring(self.xmp_str)
-            for element in root.findall("*"):
-                for rdf in element.findall("*"):
-                    [full_pano_image_width, cropped_area_image_width_pixels,
-                     projection] = self.compute_camera_items(rdf)
-
-                    if cropped_area_image_width_pixels is not None \
-                            and full_pano_image_width is not None \
-                            and projection is not None:
-                        break
-
-                    [full_pano_image_width, cropped_area_image_width_pixels,
-                     projection] = self.compute_camera_items_for_garmin(rdf)
-
+            [full_pano_image_width, cropped_area_image_width_pixels,
+             projection] = self._recursive_get_camera_item(root)
             if cropped_area_image_width_pixels is not None \
                     and full_pano_image_width is not None \
                     and projection is not None:
@@ -91,8 +112,10 @@ class XMPParser(BaseParser):
             return None
 
     @staticmethod
-    def compute_camera_items(xml_tags) -> Tuple[Optional[int], Optional[int], Optional[str]]:
-        full_pano_image_width, cropped_area_image_width_pixels, projection = (None, None, None)
+    def compute_camera_items(xml_tags,
+                             full_pano_image_width,
+                             cropped_area_image_width_pixels,
+                             projection) -> Tuple[Optional[int], Optional[int], Optional[str]]:
         for attr_name, attr_value in xml_tags.items():
             if "FullPanoWidthPixels" in attr_name:
                 full_pano_image_width = int(attr_value)
@@ -104,18 +127,18 @@ class XMPParser(BaseParser):
         return full_pano_image_width, cropped_area_image_width_pixels, projection
 
     @staticmethod
-    def compute_camera_items_for_garmin(xml_elements) -> Tuple[Optional[int],
-                                                               Optional[int],
-                                                               Optional[str]]:
-        full_pano_image_width, cropped_area_image_width_pixels, projection = (None, None, None)
-        for xml_child in xml_elements.findall("*"):
-            if "FullPanoWidthPixels" in xml_child.tag:
-                full_pano_image_width = int(xml_child.text)
-            if "CroppedAreaImageWidthPixels" in xml_child.tag:
-                cropped_area_image_width_pixels = int(xml_child.text)
-            if "ProjectionType" in xml_child.tag:
-                projection = xml_child.text
-
+    def compute_camera_items_for_garmin(xml_child,
+                                        full_pano_image_width,
+                                        cropped_area_image_width_pixels,
+                                        projection) -> Tuple[Optional[int],
+                                                             Optional[int],
+                                                             Optional[str]]:
+        if "FullPanoWidthPixels" in xml_child.tag:
+            full_pano_image_width = int(xml_child.text)
+        if "CroppedAreaImageWidthPixels" in xml_child.tag:
+            cropped_area_image_width_pixels = int(xml_child.text)
+        if "ProjectionType" in xml_child.tag:
+            projection = xml_child.text
         return full_pano_image_width, cropped_area_image_width_pixels, projection
 
     def serialize(self):
