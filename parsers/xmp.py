@@ -25,8 +25,7 @@ class XMPParser(BaseParser):
             xmp_start = data.find(b'<x:xmpmeta')
             xmp_end = data.find(b'</x:xmpmeta')
             xmp_str = data[xmp_start:xmp_end + 12]
-            print("xmp end :", xmp_start, xmp_end, "\n")
-            print(xmp_str)
+
         return xmp_str
 
     def next_item_with_class(self, item_class: Type[SensorItem]) -> Optional[SensorItem]:
