@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Optional, Dict, List, Tuple, Any, Type
 # third party
 import exifread
+import imagesize
 import piexif
 from exifread.classes import IfdTag, Ratio
 
@@ -566,13 +567,19 @@ class ExifParser(BaseParser):
     def _exif_item(self, tag_data=None) -> Optional[ExifParameters]:
         if tag_data is None:
             tag_data = self._all_tags()
-
         if ExifTags.WIDTH.value in tag_data and ExifTags.HEIGHT.value in tag_data:
             exif_item = ExifParameters()
             exif_item.width = int(tag_data[ExifTags.WIDTH.value].values[0])
             exif_item.height = int(tag_data[ExifTags.HEIGHT.value].values[0])
-            return exif_item
 
+            return exif_item
+        width, height = imagesize.get(self.file_path)
+        if width > 0 and height > 0:
+            exif_item = ExifParameters()
+            exif_item.width = width
+            exif_item.height = height
+
+            return exif_item
         return None
 
     # </editor-fold>
