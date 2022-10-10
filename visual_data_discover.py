@@ -118,7 +118,7 @@ class ExifPhotoDiscoverer(PhotoDiscovery):
 
     @classmethod
     def _sort_photo_list(cls, photos):
-        photos.sort(key=lambda p: p.gps_timestamp)
+        photos.sort(key=lambda p: (p.gps_timestamp, os.path.basename(p.path)))
 
 
 class PhotoMetadataDiscoverer(PhotoDiscovery):
