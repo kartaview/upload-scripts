@@ -1,10 +1,10 @@
 """osc_models module contains all the application level models"""
+# pylint: disable=R0902
+
 from typing import Optional
 
 from common.models import CameraProjection
 
-
-# pylint: disable=R0902
 
 class Sequence:
     """Sequence is a model class containing a list of visual items"""
