@@ -379,15 +379,16 @@ def add_optional_gps_tags(exif_gps: Dict[str, Any],
                           altitude: Optional[float],
                           compass: Optional[float]):
     """This method will append optional tags to exif_gps tags dictionary"""
+    precision = 10000
     if speed:
-        exif_gps[piexif.GPSIFD.GPSSpeed] = (speed, 1)
+        exif_gps[piexif.GPSIFD.GPSSpeed] = (int(speed * precision), precision)
         exif_gps[piexif.GPSIFD.GPSSpeedRef] = SpeedUnit.KMH.value
     if altitude:
-        exif_gps[piexif.GPSIFD.GPSAltitude] = (altitude, 1)
+        exif_gps[piexif.GPSIFD.GPSAltitude] = (int(altitude * precision), precision)
         sea_level = SeaLevel.BELOW.value if altitude < 0 else SeaLevel.ABOVE.value
         exif_gps[piexif.GPSIFD.GPSAltitudeRef] = sea_level
     if compass:
-        exif_gps[piexif.GPSIFD.GPSImgDirection] = (int(compass), 1)
+        exif_gps[piexif.GPSIFD.GPSImgDirection] = (int(compass * precision), precision)
         exif_gps[piexif.GPSIFD.GPSImgDirectionRef] = CardinalDirection.TRUE_NORTH.value
 
 

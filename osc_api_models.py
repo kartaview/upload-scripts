@@ -1,4 +1,6 @@
 """This file contains all the osc api models """
+# pylint: disable=R0902
+
 import datetime
 from decimal import Decimal
 from typing import Optional
@@ -32,7 +34,6 @@ class OSCUser:
 class OSCPhoto:
     """this is a model class for a photo from OSC API"""
 
-    # pylint: disable=R0902
     def __init__(self):
         self.timestamp = None
         self.latitude = None
@@ -48,7 +49,6 @@ class OSCPhoto:
         self.yaw = None
         self.projection = None
         self.field_of_view = None
-    # pylint: enable=R0902
 
     @classmethod
     def photo_from_json(cls, json):
@@ -131,7 +131,6 @@ class OSCCameraParameters:
 class OSCSequence:
     """this is a model class for a sequence from OSC API"""
 
-    # pylint: disable=R0902
     def __init__(self):
         self.photos: [OSCPhoto] = []
         self.local_id: Optional[str] = None
@@ -156,7 +155,6 @@ class OSCSequence:
         self.is_video: Optional[bool] = None
         self.camera_parameters: Optional[OSCCameraParameters] = None
 
-    # pylint: enable=R0902
 
     @classmethod
     def sequence_from_json(cls, json):
@@ -216,3 +214,5 @@ class OSCSequence:
             photo = self.photos[0]
             return str(photo.latitude) + "," + str(photo.longitude)
         return ""
+
+# pylint: enable=R0902

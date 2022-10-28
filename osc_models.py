@@ -1,4 +1,6 @@
 """osc_models module contains all the application level models"""
+# pylint: disable=R0902
+
 from typing import Optional
 
 from common.models import CameraProjection
@@ -7,7 +9,6 @@ from common.models import CameraProjection
 class Sequence:
     """Sequence is a model class containing a list of visual items"""
 
-    # pylint: disable=R0902
     def __init__(self):
         self.path: str = ""
         self.online_id: str = ""
@@ -19,7 +20,6 @@ class Sequence:
         self.longitude: float = None
         self.platform: Optional[str] = None
         self.device: Optional[str] = None
-    # pylint: enable=R0902
 
     @property
     def description(self) -> str:
@@ -59,7 +59,6 @@ class VisualData:
 class Photo(VisualData):
     """Photo is a VisualData model for a photo item"""
 
-    # pylint: disable=R0902
     def __init__(self, path):
         super().__init__(path)
         self.latitude: float = None
@@ -71,8 +70,6 @@ class Photo(VisualData):
         self.gps_compass: float = None
         self.fov: Optional[float] = None
         self.projection: CameraProjection = None
-
-    # pylint: enable=R0902
 
     def __eq__(self, other):
         if isinstance(other, Photo):
@@ -96,3 +93,5 @@ class Video(VisualData):
 
     def __hash__(self):
         return hash((self.path, self.index))
+
+# pylint: enable=R0902

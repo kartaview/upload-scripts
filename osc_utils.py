@@ -23,6 +23,7 @@ def create_exif(path: str, exif_source: str):
     if exif_generators[exif_source].has_necessary_data(path):
         exif_generators[exif_source].create_exif(path)
         return
+    LOGGER.info("Exif generation is not possible since necessary data was not found")
 
 
 def convert_metadata_to_gpx(base_path, sequence_path_ids):
