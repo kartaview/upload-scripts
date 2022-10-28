@@ -4,10 +4,11 @@ from typing import Optional
 from common.models import CameraProjection
 
 
+# pylint: disable=R0902
+
 class Sequence:
     """Sequence is a model class containing a list of visual items"""
 
-    # pylint: disable=R0902
     def __init__(self):
         self.path: str = ""
         self.online_id: str = ""
@@ -19,7 +20,6 @@ class Sequence:
         self.longitude: float = None
         self.platform: Optional[str] = None
         self.device: Optional[str] = None
-    # pylint: enable=R0902
 
     @property
     def description(self) -> str:
@@ -96,3 +96,5 @@ class Video(VisualData):
 
     def __hash__(self):
         return hash((self.path, self.index))
+
+# pylint: enable=R0902
