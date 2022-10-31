@@ -20,4 +20,4 @@ jobs:
         pip install pylint
     - name: Analysing the code with pylint
       run: |
-        pylint --disable=F0401,C0115,C0116,R0903,I1101,W1514,E0611 $(find . -name "*.py" | xargs)
+        pylint --disable=F0401,C0115,C0116,R0903,I1101,W1514,E0611 $(find . -name "*.py" | xargs) --max-line-length=120
