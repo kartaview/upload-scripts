@@ -190,8 +190,10 @@ class ExifParser(BaseParser):
             tags_data = self._all_tags()
 
         device = OSCDevice()
-        ori_timestamp = self._timestamp(tags_data)
-        device.timestamp = ori_timestamp if ori_timestamp is not None else self._gps_timestamp(tags_data)
+        valid_timestamp = self._timestamp(tags_data)
+        if valid_timestamp is None:
+            valid_timestamp = self._gps_timestamp(tags_data)
+        device.timestamp = valid_timestamp
         device.device_raw_name = self._device_model(tags_data)
         device.platform_name = self._maker_name(tags_data)
         device.recording_type = RecordingType.PHOTO
