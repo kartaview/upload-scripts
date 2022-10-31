@@ -2,24 +2,16 @@
 This module contains custom mapillary images parsers.
 """
 import json
-import os
 from typing import Dict, Optional
 
-import exifread
 from exifread.classes import IfdTag
 
-from common.models import PhotoMetadata, GPS, Compass, OSCDevice, RecordingType
+from common.models import OSCDevice
 from parsers.exif.exif import ExifParser
-from parsers.exif.utils import ExifTags, datetime_from_string, maker_name, device_model
+from parsers.exif.utils import ExifTags, datetime_from_string
 
 
 class MapillaryExif(ExifParser):
-
-    def _all_tags(self) -> Dict[str, IfdTag]:
-        """Method to return Exif tags"""
-        with self._storage.open(self.file_path, "rb") as file:
-            tags = exifread.process_file(file, details=True, truncate_tags=False)
-        return tags
 
     @classmethod
     def _gps_timestamp(cls, gps_data: Dict[str, IfdTag]) -> Optional[float]:
@@ -97,74 +89,13 @@ class MapillaryExif(ExifParser):
             make = description.get("MAPDeviceMake", None)
             return make
 
-    def _gps_item(self, data=None) -> Optional[GPS]:
-        if data is not None:
-            tags_data = data
-        else:
-            tags_data = self._all_tags()
-        gps = GPS()
-        # required gps timestamp or exif timestamp
-
-        gps.timestamp = MapillaryExif._gps_timestamp(tags_data)
-        # required latitude and longitude
-        gps.latitude = MapillaryExif._gps_latitude(tags_data)
-        gps.longitude = MapillaryExif._gps_longitude(tags_data)
-        if not gps.latitude or \
-                not gps.longitude or \
-                not gps.timestamp:
-            return None
-
-        # optional data
-        gps.speed = self._gps_speed(tags_data)
-        gps.altitude = self._gps_altitude(tags_data)
-        return gps
-
-    def _compass_item(self, data=None) -> Optional[Compass]:
-        if data is not None:
-            tags_data = data
-        else:
-            tags_data = self._all_tags()
-        compass = Compass()
-        compass.compass = self._gps_compass(tags_data)
-
-        if compass.compass:
-            return compass
-        return None
-
-    def _photo_item(self, tags_data=None) -> Optional[PhotoMetadata]:
-        if tags_data is None:
-            tags_data = self._all_tags()
-
-        gps = self._gps_item(tags_data)
-        if gps is None:
-            return None
-
-        compass = self._compass_item(tags_data) or Compass()
-        photo = PhotoMetadata()
-        photo.gps = gps
-        photo.compass = compass
-
-        file_name = os.path.basename(self.file_path)
-        if file_name.isdigit():
-            photo.frame_index = int(file_name)
-
-        photo.timestamp = photo.gps.timestamp
-        return photo
-
     def _device_item(self, tags_data=None) -> OSCDevice:
-        if tags_data is None:
-            tags_data = self._all_tags()
-
-        device = OSCDevice()
-        device.timestamp = self._gps_timestamp(tags_data)
-        device.device_raw_name = self._device_model(tags_data)
-        device_make = self._device_make(tags_data)
-        if device_make is None or "iPhone" in device_make:
+        device = super(MapillaryExif, self)._device_item()
+        if device.platform_name is None or "iPhone" in device.platform_name:
             if "iPhone" in device.device_raw_name:
                 device_make = "Apple"
             else:
                 device_make = "Unknown"
         device.platform_name = device_make
-        device.recording_type = RecordingType.PHOTO
 
         return device
