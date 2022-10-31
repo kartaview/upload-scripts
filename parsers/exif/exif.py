@@ -1,6 +1,5 @@
-"""Module responsible to parse Exif information from a image"""
-import math
-import datetime
+"""Module responsible to parse Exif information from an image"""
+
 import os
 from enum import Enum
 from typing import Optional, Dict, List, Tuple, Any, Type
@@ -477,7 +476,6 @@ class ExifParser(BaseParser):
     def compatible_sensors(cls):
         return [PhotoMetadata, GPS, Compass, OSCDevice]
 
-    # <editor-fold desc="Private methods">
     @classmethod
     def _gps_compass(cls, photo_metadata: PhotoMetadata):
         gps = photo_metadata.gps
@@ -502,7 +500,7 @@ class ExifParser(BaseParser):
         if (not gps.timestamp or
                 (exif_timestamp is not None and exif_timestamp > 31556952
                  and abs(gps.timestamp - exif_timestamp) > 31556952)):
-            # if there is no gps timestamp or gps timestamp differs with more then 1 year
+            # if there is no gps timestamp or gps timestamp differs with more than 1 year
             # compared to exif_timestamp we choose exif_timestamp
             gps.timestamp = exif_timestamp
 
@@ -582,5 +580,3 @@ class ExifParser(BaseParser):
 
             return exif_item
         return None
-
-    # </editor-fold>

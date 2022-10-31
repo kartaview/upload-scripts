@@ -1,5 +1,5 @@
 """
-This module constains custom geosjon parsers.
+This module contains custom geojson parsers.
 """
 from typing import Type, List, Optional
 import datetime
