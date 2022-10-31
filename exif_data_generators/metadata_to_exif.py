@@ -10,7 +10,7 @@ from common.models import PhotoMetadata
 from exif_data_generators.exif_generator_interface import ExifGenerator
 from io_storage.storage import Local
 from osc_models import Photo
-from parsers.exif import create_required_gps_tags, add_optional_gps_tags, add_gps_tags
+from parsers.exif.utils import create_required_gps_tags, add_optional_gps_tags, add_gps_tags
 from parsers.osc_metadata.parser import metadata_parser
 
 logger = logging.getLogger(__name__)

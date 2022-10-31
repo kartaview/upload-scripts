@@ -14,7 +14,7 @@ import os
 from typing import List
 
 from parsers.custom_data_parsers.custom_geojson import FeaturePhotoGeoJsonParser, PhotoGeoJson
-from parsers.exif import create_required_gps_tags, add_optional_gps_tags, add_gps_tags
+from parsers.exif.utils import create_required_gps_tags, add_optional_gps_tags, add_gps_tags
 from exif_data_generators.exif_generator_interface import ExifGenerator
 from io_storage.storage import Local
 

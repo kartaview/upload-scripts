@@ -18,7 +18,7 @@ from login_controller import LoginController
 from osc_api_config import OSCAPISubDomain
 from osc_api_gateway import OSCApi
 from osc_api_models import OSCPhoto
-from parsers.exif import ExifParser
+from parsers.exif.exif import ExifParser
 
 LOGGER = logging.getLogger('osc_tools.osc_utils')
 

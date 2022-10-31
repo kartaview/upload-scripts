@@ -8,18 +8,18 @@ from typing import Optional, Tuple, List, cast
 import constants
 
 from io_storage.storage import Local
+from parsers.custom_data_parsers.custom_mapillary import MapillaryExif
 from parsers.osc_metadata.parser import metadata_parser
-from parsers.exif import ExifParser
+from parsers.exif.exif import ExifParser
 from parsers.xmp import XMPParser
 from osc_models import VisualData, Photo, Video
 from common.models import PhotoMetadata, CameraParameters
-
 
 LOGGER = logging.getLogger('osc_tools.visual_data_discoverer')
 
 
 class VisualDataDiscoverer:
-    """This class is a abstract discoverer of visual data files"""
+    """This class is an abstract discoverer of visual data files"""
 
     @classmethod
     def discover(cls, path: str) -> Tuple[List[VisualData], str]:
@@ -119,6 +119,51 @@ class ExifPhotoDiscoverer(PhotoDiscovery):
     @classmethod
     def _sort_photo_list(cls, photos):
         photos.sort(key=lambda p: (p.gps_timestamp, os.path.basename(p.path)))
+
+
+class MapillaryExifDiscoverer(ExifPhotoDiscoverer):
+    @classmethod
+    def _photo_from_path(cls, path) -> Optional[Photo]:
+        photo = Photo(path)
+        exif_parser = MapillaryExif(path, Local())
+        photo_metadata: PhotoMetadata = cast(PhotoMetadata,
+                                             exif_parser.next_item_with_class(PhotoMetadata))
+
+        if photo_metadata is None:
+            return None
+
+        # required gps timestamp or exif timestamp
+        photo.gps_timestamp = photo_metadata.gps.timestamp
+        photo.exif_timestamp = photo_metadata.timestamp
+        if not photo.gps_timestamp and photo.exif_timestamp:
+            photo.gps_timestamp = photo.exif_timestamp
+
+        # required latitude and longitude
+        photo.latitude = photo_metadata.gps.latitude
+        photo.longitude = photo_metadata.gps.longitude
+        if not photo.latitude or \
+                not photo.longitude or \
+                not photo.gps_timestamp:
+            return None
+
+        # optional data
+        photo.gps_speed = photo_metadata.gps.speed
+        photo.gps_altitude = photo_metadata.gps.altitude
+        photo.gps_compass = photo_metadata.compass.compass
+
+        # pylint: disable=W0703
+        try:
+            xmp_parser = XMPParser(path, Local())
+            params: CameraParameters = cast(CameraParameters,
+                                            xmp_parser.next_item_with_class(CameraParameters))
+            if params is not None:
+                photo.fov = params.h_fov
+                photo.projection = params.projection
+        except Exception:
+            pass
+
+        LOGGER.debug("lat/lon: %f/%f", photo.latitude, photo.longitude)
+        return photo
 
 
 class PhotoMetadataDiscoverer(PhotoDiscovery):
