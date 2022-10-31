@@ -1,3 +1,5 @@
+"""Module containing Exif object helpers"""
+
 import math
 import datetime
 from enum import Enum
@@ -11,7 +13,7 @@ KNOTS_TO_KMH_FACTOR = 1.852
 
 
 class ExifTags(Enum):
-    """This is a enumeration of exif tags. More info here
+    """This is an enumeration of exif tags. More info here
     http://owl.phy.queensu.ca/~phil/exiftool/TagNames/GPS.html """
     DATE_TIME_ORIGINAL = "EXIF DateTimeOriginal"
     DATE_TIME_DIGITIZED = "EXIF DateTimeDigitized"
@@ -129,7 +131,7 @@ def datetime_from_string(date_taken, string_format):
             time_value = time_value.replace(tzinfo=datetime.timezone.utc)
         return time_value
     except ValueError as error:
-        # this is are workarounds for wrong timestamp format e.g
+        # this is are workarounds for wrong timestamp format e.g.
 
         # date_taken = "????:??:?? ??:??:??"
         if isinstance(date_taken, str):
@@ -159,7 +161,7 @@ def add_gps_tags(path: str, gps_tags: Dict[str, Any]):
 def create_required_gps_tags(timestamp_gps: Optional[float],
                              latitude: float,
                              longitude: float) -> Dict[str, Any]:
-    """This method will creates gps required tags """
+    """This method will create gps required tags """
     exif_gps: Dict[str, Any] = {}
     if timestamp_gps is not None:
         day = int(timestamp_gps / 86400) * 86400

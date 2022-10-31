@@ -16,16 +16,21 @@ from common.models import (
     OSCDevice,
     ExifParameters,
     RecordingType)
+
+from parsers.base import BaseParser
 from parsers.exif.utils import (
-    ExifTags, CardinalDirection, SpeedUnit, SeaLevel,
+    ExifTags,
+    CardinalDirection,
+    SpeedUnit,
+    SeaLevel,
     datetime_from_string,
     create_required_gps_tags,
     add_optional_gps_tags,
     add_gps_tags,
     dms_to_dd
 )
+
 from io_storage.storage import Storage
-from parsers.base import BaseParser
 
 
 class ExifParser(BaseParser):
