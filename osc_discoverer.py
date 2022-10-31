@@ -8,10 +8,12 @@ from typing import List, cast
 import constants
 from common.models import GPS, OSCDevice
 from io_storage.storage import Local
-from parsers.exif import ExifParser
+from parsers.custom_data_parsers.custom_mapillary import MapillaryExif
+from parsers.exif.exif import ExifParser
 from parsers.osc_metadata.parser import metadata_parser
 from visual_data_discover import VisualDataDiscoverer
 from visual_data_discover import ExifPhotoDiscoverer
+from visual_data_discover import MapillaryExifDiscoverer
 from visual_data_discover import PhotoMetadataDiscoverer
 from visual_data_discover import VideoDiscoverer
 from validators import SequenceValidator, SequenceMetadataValidator, SequenceFinishedValidator
@@ -158,6 +160,12 @@ class SequenceDiscoverer:
                     if device_info:
                         sequence.device = device_info.device_raw_name
                         sequence.platform = device_info.platform_name
+                if isinstance(self.visual_data, MapillaryExifDiscoverer):
+                    parser = MapillaryExif(visual_item.path, Local())
+                    device_info: OSCDevice = parser.next_item_with_class(OSCDevice)
+                    if device_info:
+                        sequence.device = device_info.device_raw_name
+                        sequence.platform = device_info.platform_name
                 if isinstance(visual_item, Photo):
                     sequence.latitude = visual_item.latitude
                     sequence.longitude = visual_item.longitude
@@ -172,6 +180,7 @@ class SequenceDiscovererFactory:
         return [cls.finished_discoverer(),
                 cls.photo_metadata_discoverer(),
                 cls.exif_discoverer(),
+                cls.mapillary_exif_discoverer(),
                 cls.video_discoverer()]
 
     @classmethod
@@ -189,6 +198,15 @@ class SequenceDiscovererFactory:
         exif_photo_finder = SequenceDiscoverer()
         exif_photo_finder.name = "Exif-Photo"
         exif_photo_finder.visual_data = ExifPhotoDiscoverer()
+        exif_photo_finder.osc_metadata = None
+        return exif_photo_finder
+
+    @classmethod
+    def mapillary_exif_discoverer(cls) -> SequenceDiscoverer:
+        """This method will return a photo discoverer"""
+        exif_photo_finder = SequenceDiscoverer()
+        exif_photo_finder.name = "MapillaryExif-Photo"
+        exif_photo_finder.visual_data = MapillaryExifDiscoverer()
         exif_photo_finder.osc_metadata = None
         return exif_photo_finder
 
