@@ -22,8 +22,8 @@ pip3 install -r requirements.txt
 ## 1. Upload photos to KartaView
 
 ##### Description
-This script is used to upload sequences from a local directory. The available formats are:
-* Sequences taken with the OSC mobile apps
+This script is used to upload tracks from a local directory. The available formats are:
+* Tracks taken with the OSC mobile apps
 * Exif images
  
 ##### Usage
@@ -36,8 +36,8 @@ python osc_tools.py -h
 # help for upload
 python osc_tools.py upload -h
 
-# upload all sequences from ~/OSC_sequences folder
-python osc_tools.py upload -p ~/OSC_seqences
+# upload all tracks from ~/OSC_tracks folder
+python osc_tools.py upload -p ~/OSC_tracks
 
 ```
 
@@ -45,7 +45,6 @@ python osc_tools.py upload -p ~/OSC_seqences
 
 ##### Description
 This script generates GPS Exif for each image. It has two options generating exif info from metadata file or generating exif info from a custom geojson file. 
-
 ```sh
 cd /path_to_scripts
 
@@ -58,13 +57,12 @@ python osc_tools.py generate_exif -h
 
 #### Option I. From an KV metadata format file
 ```sh
-# Exif generation for mobile recorded sequence having metadata files in ~/OSC_sequences/Sequence1 folder
-python osc_tools.py generate_exif -exif_source metadata -p ~/OSC_seqences/Sequence1
+# Exif generation for mobile recorded track having metadata files in ~/OSC_tracks/Track1 folder
+python osc_tools.py generate_exif -exif_source metadata -p ~/OSC_seqences/Track1
 
 ```
 
 #### Option II. From custom geojson file and the images that require the exif data
-
 ```sh
 # Exif generation for custom geojson + imagery 
 python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderContainingGeoJsonAndImages
@@ -149,6 +147,14 @@ python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderC
   | `path` | string | operating system’s specific path format | image path relative to the geojson file |
 </details>
 
+#### Option III. Mapillary’s proprietary JSON format
+If the images have been
+ * captured with a Mapillary app and downloaded from a smartphone,
+ * or processed with any of Mapillary’s upload tools, like mapillary_tools or
+   the “Mapillary Desktop Uploader”
+
+then any available proprietary Mapillary JSON data in the Exif
+`ImageDescription` tag takes precedence in processing automatically.
 
 ### Docker Support
 To run the scripts inside a Docker container:

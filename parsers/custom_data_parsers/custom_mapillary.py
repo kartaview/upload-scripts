@@ -1,5 +1,6 @@
 """
 This module contains custom mapillary images parsers.
+Parses Mapillary’s proprietary JSON data in the Exif ImageDescription tag.
 """
 import json
 from typing import Dict, Optional
