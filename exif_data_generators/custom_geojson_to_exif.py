@@ -2,11 +2,12 @@
 Exif generation from custom geojson file. Required a geojson file containing a
 FeatureCollection. Each Feature from the FeatureCollection must contain the folowing properties:
 {
-    "Timestamp": "%Y-%m-%dT%H:%M:%SZ"
-    "Lat": float
-    "Lng": float
-    "order": int
-    "path": image path relative to the geojson file
+    "Timestamp": "%Y-%m-%dT%H:%M:%SZ", RFC 3339 not full ISO 8601
+    "Lat": float, -90.0 <= Lat <= 90.0
+    "Lng": float, 0.0 <= Lng < 360.0
+    "order": int, order >= 1
+    "direction": float, 0.0 <= direction < 360.0
+    "path": string, image path relative to the geojson file
 }
 """
 import logging
