@@ -3,7 +3,7 @@
 from enum import Enum
 
 PROTOCOL = "https://"
-DOMAIN = "openstreetcam.org"
+DOMAIN = "kartaview.org"
 VERSION = "1.0"
 
 
