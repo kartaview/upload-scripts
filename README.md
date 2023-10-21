@@ -144,6 +144,17 @@ python osc_tools.py generate_exif -exif_source custom_geojson -p ~/CustomFolderC
 </details>
 
 
+## 3. Download Imagery based on user  
+##### Description 
+This script will download all your user uploaded data into a local folder that you provide as input. 
+It will require a login with your OSM account. 
+Output imagery data will be grouped based on sequences.   
+###### *Current limitations: It does not work for Google and Facebook accounts.
+##### Usage
+```
+python3 osc_tools.py download -p "path to a local folder in which you will have all the data downloaded"
+```
+
 ### Docker Support
 To run the scripts inside a Docker container:
 ```
