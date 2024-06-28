@@ -151,7 +151,8 @@ class XMPParser(BaseParser):
                     width = item.width
                     # print(str(hex_val) + xmp_header)
             # pylint: disable=C0301
-            xmp_header = '''<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.1.0-jc003">\n<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">\n<rdf:Description rdf:about="" xmlns:GPano="http://ns.google.com/photos/1.0/panorama/">\n<GPano:UsePanoramaViewer>True</GPano:UsePanoramaViewer>\n<GPano:ProjectionType>equirectangular</GPano:ProjectionType>\n<GPano:PoseHeadingDegrees>0.0</GPano:PoseHeadingDegrees>\n<GPano:PosePitchDegrees>0.0</GPano:PosePitchDegrees>\n<GPano:PoseRollDegrees>0.0</GPano:PoseRollDegrees>\n<GPano:InitialViewHeadingDegrees>0.0</GPano:InitialViewHeadingDegrees>\n<GPano:InitialViewPitchDegrees>0.0</GPano:InitialViewPitchDegrees>\n<GPano:InitialViewRollDegrees>0.0</GPano:InitialViewRollDegrees>\n<GPano:InitialHorizontalFOVDegrees>0.0</GPano:InitialHorizontalFOVDegrees>\n<GPano:InitialVerticalFOVDegrees>0.0</GPano:InitialVerticalFOVDegrees>\n<GPano:CroppedAreaLeftPixels>0</GPano:CroppedAreaLeftPixels>\n<GPano:CroppedAreaTopPixels>0</GPano:CroppedAreaTopPixels>\n<GPano:CroppedAreaImageWidthPixels>{imagewidth}</GPano:CroppedAreaImageWidthPixels>\n<GPano:CroppedAreaImageHeightPixels>{imageheight}</GPano:CroppedAreaImageHeightPixels>\n<GPano:FullPanoWidthPixels>{imagewidth}</GPano:FullPanoWidthPixels>\n<GPano:FullPanoHeightPixels>{imageheight}</GPano:FullPanoHeightPixels>\n</rdf:Description>\n</rdf:RDF>\n</x:xmpmeta>'''.format(imageheight=height, imagewidth=width)
+            xmp_header = '''<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.1.0-jc003">\n<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">\n<rdf:Description rdf:about="" xmlns:GPano="http://ns.google.com/photos/1.0/panorama/">\n<GPano:UsePanoramaViewer>True</GPano:UsePanoramaViewer>\n<GPano:ProjectionType>equirectangular</GPano:ProjectionType>\n<GPano:PoseHeadingDegrees>0.0</GPano:PoseHeadingDegrees>\n<GPano:PosePitchDegrees>0.0</GPano:PosePitchDegrees>\n<GPano:PoseRollDegrees>0.0</GPano:PoseRollDegrees>\n<GPano:InitialViewHeadingDegrees>0.0</GPano:InitialViewHeadingDegrees>\n<GPano:InitialViewPitchDegrees>0.0</GPano:InitialViewPitchDegrees>\n<GPano:InitialViewRollDegrees>0.0</GPano:InitialViewRollDegrees>\n<GPano:InitialHorizontalFOVDegrees>0.0</GPano:InitialHorizontalFOVDegrees>\n<GPano:InitialVerticalFOVDegrees>0.0</GPano:InitialVerticalFOVDegrees>\n<GPano:CroppedAreaLeftPixels>0</GPano:CroppedAreaLeftPixels>\n<GPano:CroppedAreaTopPixels>0</GPano:CroppedAreaTopPixels>\n<GPano:CroppedAreaImageWidthPixels>{imagewidth}</GPano:CroppedAreaImageWidthPixels>\n<GPano:CroppedAreaImageHeightPixels>{imageheight}</GPano:CroppedAreaImageHeightPixels>\n<GPano:FullPanoWidthPixels>{imagewidth}</GPano:FullPanoWidthPixels>\n<GPano:FullPanoHeightPixels>{imageheight}</GPano:FullPanoHeightPixels>\n</rdf:Description>\n</rdf:RDF>\n</x:xmpmeta>'''.format(
+                imageheight=height, imagewidth=width)
             # pylint: enable=C0301
             string_len = len(xmp_header.encode('utf-8')) + 2
             xmp_header = b'\xff\xe1' + struct.pack('>h', string_len) + xmp_header.encode('utf-8')
@@ -159,8 +160,8 @@ class XMPParser(BaseParser):
                 with self._storage.open(self.file_path, "wb") as out_image:
                     out_image.write(data[:2] + xmp_header + data[2:])
             elif len(self.xmp_str) > 0:
-                NotImplementedError("Adding information to existing XMP header is currently "
-                                    "not supported")
+                raise NotImplementedError("Adding information to existing XMP header is currently "
+                                          "not supported")
             else:
                 with self._storage.open(self.file_path, "wb") as out_image:
                     out_image.write(data[:start] + xmp_header + data[start:])

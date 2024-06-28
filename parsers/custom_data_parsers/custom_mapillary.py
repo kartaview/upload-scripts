@@ -20,7 +20,7 @@ class MapillaryExif(ExifParser):
             description = str(gps_data[ExifTags.DESCRIPTION.value])
             try:
                 description = json.loads(description)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError as _:
                 return None
             mapillary_timestamp = description.get("MAPCaptureTime", None)  # 2021_07_24_14_24_04_000
             if mapillary_timestamp is not None:
@@ -34,7 +34,7 @@ class MapillaryExif(ExifParser):
             description = str(gps_data[ExifTags.DESCRIPTION.value])
             try:
                 description = json.loads(description)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError as _:
                 return None
             # mapillary latitude exists return it or None
             latitude = description.get("MAPLatitude", None)
@@ -47,7 +47,7 @@ class MapillaryExif(ExifParser):
             description = str(gps_data[ExifTags.DESCRIPTION.value])
             try:
                 description = json.loads(description)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError as _:
                 return None
             # mapillary longitude exists return it or None
             latitude = description.get("MAPLongitude", None)
@@ -60,7 +60,7 @@ class MapillaryExif(ExifParser):
             description = str(gps_data[ExifTags.DESCRIPTION.value])
             try:
                 description = json.loads(description)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError as _:
                 return None
             # mapillary compass exists return it or None
             compass_dict = description.get("MAPCompassHeading", {})
@@ -74,7 +74,7 @@ class MapillaryExif(ExifParser):
             description = str(gps_data[ExifTags.DESCRIPTION.value])
             try:
                 description = json.loads(description)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError as _:
                 return None
             # mapillary altitude exists return it or None
             altitude = description.get("MAPAltitude", None)
@@ -87,7 +87,7 @@ class MapillaryExif(ExifParser):
             description = str(gps_data[ExifTags.DESCRIPTION.value])
             try:
                 description = json.loads(description)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError as _:
                 return None
             # mapillary speed exists return it or None
             speed = description.get("MAPGPSSpeed", None)
@@ -100,7 +100,7 @@ class MapillaryExif(ExifParser):
             description = str(gps_data[ExifTags.DESCRIPTION.value])
             try:
                 description = json.loads(description)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError as _:
                 return None
             # mapillary device model exists return it or None
             speed = description.get("MAPDeviceModel", None)
@@ -113,7 +113,7 @@ class MapillaryExif(ExifParser):
             description = str(gps_data[ExifTags.DESCRIPTION.value])
             try:
                 description = json.loads(description)
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError as _:
                 return None
             # mapillary device make exists return it or None
             make = description.get("MAPDeviceMake", None)

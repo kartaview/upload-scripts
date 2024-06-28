@@ -79,7 +79,7 @@ class LoginController:
 
         self.__persist_login(osc_user=osc_user)
         self.user = osc_user
-        LOGGER.info(f"Greetings, {self.user.name}!")
+        LOGGER.info("Greetings, %s!", self.user.name)
         return osc_user
 
     @classmethod

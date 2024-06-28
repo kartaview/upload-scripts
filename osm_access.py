@@ -22,7 +22,7 @@ def __osm_auth_service() -> OAuth2Session:
 
 def osm_auth(request_user_action, error_handle) -> Tuple[Optional[str], Optional[str]]:
     service = __osm_auth_service()
-    authorization_url, state = service.authorization_url(OSM_AUTH_URL)
+    authorization_url, _ = service.authorization_url(OSM_AUTH_URL)
     response = request_user_action(authorization_url)
     # pylint: disable=W0703
     try:

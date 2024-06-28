@@ -123,16 +123,16 @@ class MetadataParser(BaseParser):
             self.header_line = metadata_file.readline()
             line = metadata_file.readline()
             if "HEADER" not in line:
-                return None
+                return
 
             # find the definition lines
             line = metadata_file.readline()
             while line and "BODY" not in line:
                 if "ALIAS:" not in line:
-                    return None
+                    return
                 alias_line_elements = line.split(":")
                 if ";" not in alias_line_elements[1]:
-                    return None
+                    return
 
                 definition = SensorItemDefinition.definition_from_row(line)
                 self._alias_definitions[definition.alias] = definition
