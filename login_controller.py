@@ -4,6 +4,8 @@ import sys
 import urllib
 import json
 import logging
+from typing import Optional
+
 from osm_access import osm_auth
 from osc_api_gateway import OSCApi
 from osc_api_gateway import OSCUser
@@ -31,7 +33,7 @@ class LoginController:
     def __init__(self, sub_domain: OSCAPISubDomain):
         self.osc_api = OSCApi(sub_domain)
         self.handle_retry_count = 0
-        self.user: OSCUser = None
+        self.user: Optional[OSCUser] = None
         self.osm_token = ""
         self.osm_token_secret = ""
 
@@ -77,7 +79,7 @@ class LoginController:
 
         self.__persist_login(osc_user=osc_user)
         self.user = osc_user
-
+        LOGGER.info(f"Greetings, {self.user.name}!")
         return osc_user
 
     @classmethod
@@ -108,9 +110,9 @@ class LoginController:
     @classmethod
     def __prompt_user_for_login(cls, osm_url: str):
         LOGGER.warning("")
-        LOGGER.warning('For login go to this URL in your browser:')
-        LOGGER.warning(osm_url)
-        LOGGER.warning((input("Login and grant access then press ENTER")))
+        return input(f"1. Login by opening this URL in your browser:\n\t{osm_url}\n"
+                     f"2. Copy, paste the 'Authorization code' from the browser in console\n"
+                     f"3. Press ENTER\n")
 
     @classmethod
     def __handle_error_on_authorization(cls, exception: Exception):
