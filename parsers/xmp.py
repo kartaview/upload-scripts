@@ -145,6 +145,8 @@ class XMPParser(BaseParser):
         with self._storage.open(self.file_path, "rb") as image:
             data = image.read()
             start = data.find(b'\xff\xe1')
+            height = 0
+            width = 0
             for item in self._sensors:
                 if isinstance(item, ExifParameters):
                     height = item.height
